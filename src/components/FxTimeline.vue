@@ -59,11 +59,11 @@ defineProps({
   flex: none;
   border: 2px solid var(--fx-surface);
 }
-.fx-timeline__marker--neutral { background: var(--fx-border-strong); color: #fff; }
-.fx-timeline__marker--primary { background: var(--fx-primary); color: #fff; }
-.fx-timeline__marker--success { background: var(--fx-success); color: #fff; }
-.fx-timeline__marker--warning { background: #f59e0b; color: #fff; }
-.fx-timeline__marker--danger { background: var(--fx-danger); color: #fff; }
+.fx-timeline__marker--neutral { background: var(--fx-border-strong); color: var(--fx-surface); }
+.fx-timeline__marker--primary { background: var(--fx-primary); color: var(--fx-on-primary); }
+.fx-timeline__marker--success { background: var(--fx-success); color: var(--fx-on-success); }
+.fx-timeline__marker--warning { background: var(--fx-warning); color: var(--fx-on-warning); }
+.fx-timeline__marker--danger { background: var(--fx-danger); color: var(--fx-on-danger); }
 .fx-timeline__body { flex: 1; min-width: 0; }
 .fx-timeline__head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; }
 .fx-timeline__title { font-size: 0.9375rem; }

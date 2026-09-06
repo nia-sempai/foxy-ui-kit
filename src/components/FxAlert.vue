@@ -58,8 +58,8 @@ const iconName = computed(() => props.icon || defaultIcons[props.tone] || 'info'
   flex: none;
 }
 .fx-alert__close:hover { opacity: 1; }
-.fx-alert--info { background: var(--fx-primary-soft); border-color: #bfdbfe; color: #1e40af; }
-.fx-alert--success { background: var(--fx-success-soft); border-color: #a7f3d0; color: #065f46; }
-.fx-alert--warning { background: var(--fx-warning-soft); border-color: #fde68a; color: #92400e; }
-.fx-alert--danger { background: var(--fx-danger-soft); border-color: #fecaca; color: #991b1b; }
+.fx-alert--info { background: var(--fx-primary-soft); border-color: color-mix(in srgb, var(--fx-primary) 25%, transparent); color: var(--fx-primary-hover); }
+.fx-alert--success { background: var(--fx-success-soft); border-color: color-mix(in srgb, var(--fx-success) 30%, transparent); color: var(--fx-success-strong); }
+.fx-alert--warning { background: var(--fx-warning-soft); border-color: color-mix(in srgb, var(--fx-warning) 35%, transparent); color: var(--fx-warning-strong); }
+.fx-alert--danger { background: var(--fx-danger-soft); border-color: color-mix(in srgb, var(--fx-danger) 30%, transparent); color: var(--fx-danger-strong); }
 </style>

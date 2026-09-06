@@ -1,72 +1,111 @@
 <script setup>
 /**
- * FxDropdown — меню действий у триггера (профиль в шапке, «ещё» в строке).
+ * FxDropdown — кнопка, раскрывающая плавающую панель, на @zag-js/popover.
  *
- * Закрывается по клику вне, Esc и по выбору пункта. Позиция задаётся пропом
- * align, потому что в правом краю шапки меню должно прижиматься вправо.
+ * Позиционирование, закрытие по клику вне и Esc, возврат фокуса — от машины.
+ * Панель рендерится в <body>, поэтому не обрезается таблицами и модалками.
+ *
+ * Триггер — либо собственная кнопка кита (пропы label/icon/variant/size), либо
+ * слот #trigger, который обязан привязать `props` к своему элементу:
+ *
+ *   <FxDropdown label="Экспорт" v-slot="{ close }">
+ *     <FxMenuItem icon="download">PDF</FxMenuItem>
+ *   </FxDropdown>
+ *
+ *   <FxDropdown #trigger="{ props }">
+ *     <FxButton v-bind="props" variant="ghost" icon="more" />
+ *   </FxDropdown>
+ *
+ * Клик по FxMenuItem закрывает панель (`close-on-select`); для панелей с
+ * формой внутри используйте `close` из слота.
  */
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import * as popover from '@zag-js/popover'
+import { normalizeProps, useMachine } from '@zag-js/vue'
+import { computed, useId } from 'vue'
+import FxButton from './FxButton.vue'
 
-defineProps({
+const props = defineProps({
+  modelValue: { type: Boolean, default: undefined },
+  label: { type: String, default: '' },
+  icon: { type: String, default: '' },
+  iconEnd: { type: String, default: undefined },
+  variant: { type: String, default: 'secondary' },
+  size: { type: String, default: 'md' },
   align: { type: String, default: 'end' }, // start | end
+  placement: { type: String, default: '' },
   width: { type: String, default: '13rem' },
+  closeOnSelect: { type: Boolean, default: true },
+  disabled: { type: Boolean, default: false },
 })
 
-const open = ref(false)
-const root = ref(null)
+const emit = defineEmits(['update:modelValue'])
 
-function close() { open.value = false }
+const triggerIcon = computed(() => (props.label ? props.icon : props.icon || 'more'))
+const triggerIconEnd = computed(() => (props.label ? props.iconEnd ?? 'chevron-down' : ''))
 
-function onDocClick(e) {
-  if (open.value && root.value && !root.value.contains(e.target)) close()
+const service = useMachine(popover.machine, {
+  id: useId(),
+  get positioning() {
+    return { placement: props.placement || (props.align === 'start' ? 'bottom-start' : 'bottom-end') }
+  },
+  get open() {
+    return props.modelValue
+  },
+  onOpenChange(details) {
+    emit('update:modelValue', details.open)
+  },
+})
+
+const api = computed(() => popover.connect(service, normalizeProps))
+
+function close() {
+  api.value.setOpen(false)
 }
-function onKey(e) { if (e.key === 'Escape') close() }
 
-onMounted(() => {
-  document.addEventListener('click', onDocClick)
-  document.addEventListener('keydown', onKey)
-})
-onBeforeUnmount(() => {
-  document.removeEventListener('click', onDocClick)
-  document.removeEventListener('keydown', onKey)
-})
+function onContentClick(event) {
+  if (props.closeOnSelect && event.target.closest('[data-fx-menu-item]')) close()
+}
 </script>
 
 <template>
-  <div ref="root" class="fx-dropdown">
-    <span class="fx-dropdown__trigger" @click="open = !open">
-      <slot name="trigger" :open="open" />
-    </span>
-    <Transition name="fx-dropdown">
-      <div
-        v-if="open"
-        class="fx-dropdown__menu"
-        :class="`fx-dropdown__menu--${align}`"
-        :style="{ width }"
-        role="menu"
-        @click="close"
+  <span class="fx-dropdown">
+    <slot name="trigger" :props="api.getTriggerProps()" :open="api.open">
+      <FxButton
+        v-bind="api.getTriggerProps()"
+        :variant="variant"
+        :size="size"
+        :icon="triggerIcon"
+        :icon-end="triggerIconEnd"
+        :disabled="disabled"
       >
-        <slot />
+        <template v-if="label" #default>{{ label }}</template>
+      </FxButton>
+    </slot>
+    <Teleport to="body">
+      <div v-bind="api.getPositionerProps()">
+        <div
+          class="fx-dropdown__menu"
+          :style="{ minWidth: width }"
+          v-bind="api.getContentProps()"
+          @click="onContentClick"
+        >
+          <slot :close="close" />
+        </div>
       </div>
-    </Transition>
-  </div>
+    </Teleport>
+  </span>
 </template>
 
 <style scoped>
-.fx-dropdown { position: relative; display: inline-flex; }
-.fx-dropdown__trigger { display: inline-flex; }
+.fx-dropdown { display: inline-flex; }
 .fx-dropdown__menu {
-  position: absolute;
-  top: calc(100% + 0.35rem);
-  z-index: 60;
+  z-index: 1100;
   padding: 0.3rem;
   background: var(--fx-surface);
   border: 1px solid var(--fx-border);
   border-radius: var(--fx-radius);
   box-shadow: var(--fx-shadow-md);
+  outline: none;
 }
-.fx-dropdown__menu--end { right: 0; }
-.fx-dropdown__menu--start { left: 0; }
-.fx-dropdown-enter-active, .fx-dropdown-leave-active { transition: opacity 0.12s, transform 0.12s; }
-.fx-dropdown-enter-from, .fx-dropdown-leave-to { opacity: 0; transform: translateY(-0.25rem); }
+.fx-dropdown__menu[hidden] { display: none; }
 </style>

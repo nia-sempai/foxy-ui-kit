@@ -1,7 +1,8 @@
 <script setup>
 /**
  * FxMenuItem — пункт меню внутри FxDropdown. Рендерится как <router-link>,
- * если передан `to`, иначе как кнопка.
+ * если передан `to`, иначе как кнопка. Атрибут data-fx-menu-item нужен
+ * дропдауну, чтобы закрыться после выбора.
  */
 import FxIcon from './FxIcon.vue'
 
@@ -17,10 +18,12 @@ defineProps({
   <component
     :is="to ? 'router-link' : 'button'"
     :to="to"
+    :type="to ? null : 'button'"
     class="fx-menu-item"
     :class="{ 'fx-menu-item--danger': danger }"
     :disabled="to ? null : disabled"
     role="menuitem"
+    data-fx-menu-item
   >
     <FxIcon v-if="icon" :name="icon" :size="15" />
     <span class="fx-menu-item__label"><slot /></span>
@@ -45,8 +48,9 @@ defineProps({
   cursor: pointer;
 }
 .fx-menu-item:hover { background: var(--fx-surface-muted); text-decoration: none; }
+.fx-menu-item:focus-visible { outline: 2px solid var(--fx-primary); outline-offset: -2px; }
 .fx-menu-item:disabled { opacity: 0.5; cursor: not-allowed; }
-.fx-menu-item--danger { color: var(--fx-danger); }
+.fx-menu-item--danger { color: var(--fx-danger-strong); }
 .fx-menu-item--danger:hover { background: var(--fx-danger-soft); }
 .fx-menu-item__label { flex: 1; min-width: 0; }
 </style>

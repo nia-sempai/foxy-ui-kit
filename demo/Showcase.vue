@@ -16,6 +16,7 @@ const toast = useToast()
 // --- конструктор темы ---
 const theme = ref({
   preset: 'default',
+  scheme: 'light',
   neutral: '',
   radius: 'default',
   density: 'default',
@@ -31,7 +32,15 @@ const themeSpec = computed(() => {
   return t
 })
 
-watch(themeSpec, (spec) => applyTheme(spec), { immediate: true, deep: true })
+let restoreTheme = () => {}
+watch(
+  themeSpec,
+  (spec) => {
+    restoreTheme()
+    restoreTheme = applyTheme(spec)
+  },
+  { immediate: true, deep: true },
+)
 
 const cssPreview = computed(() => themeToCss(themeSpec.value))
 
@@ -50,7 +59,23 @@ const comment = ref('')
 const agree = ref(true)
 const notify = ref(true)
 const plan = ref('team')
-const files = ref([{ name: 'Отчёт за квартал.pdf', size: 482301 }])
+const files = ref([new File(['demo'], 'Отчёт за квартал.pdf', { type: 'application/pdf' })])
+const owner = ref(null)
+const people = [
+  { id: 1, name: 'Анна Ковалёва' },
+  { id: 2, name: 'Дмитрий Орлов' },
+  { id: 3, name: 'Мария Титова' },
+  { id: 4, name: 'Сергей Белов' },
+]
+const schemeOptions = [
+  { value: 'light', label: 'Светлая' },
+  { value: 'dark', label: 'Тёмная' },
+  { value: 'system', label: 'Как в системе' },
+]
+
+function toggleScheme() {
+  theme.value.scheme = theme.value.scheme === 'dark' ? 'light' : 'dark'
+}
 const tab = ref('all')
 const view = ref('table')
 const page = ref(1)
@@ -126,10 +151,11 @@ const optionsOf = (obj) => Object.keys(obj).map((k) => ({ value: k, label: k }))
           <span class="showcase__logo"><FxIcon name="zap" :size="20" /></span>
           <div>
             <h1>foxy-ui-kit</h1>
-            <p>Светлый UI-kit на Vue 3 со сменными темами оформления</p>
+            <p>UI-kit на Vue 3 со сменными темами, светлой и тёмной схемой</p>
           </div>
         </div>
         <div class="showcase__hero-actions">
+          <FxButton variant="secondary" :icon="theme.scheme === 'dark' ? 'sun' : 'moon'" title="Переключить схему" @click="toggleScheme" />
           <FxButton variant="secondary" icon="external">GitHub</FxButton>
           <FxButton variant="primary" icon="download">yarn add foxy-ui-kit</FxButton>
         </div>
@@ -162,7 +188,8 @@ const optionsOf = (obj) => Object.keys(obj).map((k) => ({ value: k, label: k }))
           </div>
 
           <div class="showcase__theme-grid">
-            <FxSelect v-model="theme.neutral" label="Нейтрали" placeholder="из пресета" :options="optionsOf(neutrals)" />
+            <FxSelect v-model="theme.scheme" label="Схема" :options="schemeOptions" />
+            <FxSelect v-model="theme.neutral" label="Нейтрали" placeholder="из пресета" :options="optionsOf(neutrals)" clearable />
             <FxSelect v-model="theme.radius" label="Скругления" :options="optionsOf(radiusScales)" />
             <FxSelect v-model="theme.density" label="Плотность" :options="optionsOf(densities)" />
             <FxSelect v-model="theme.elevation" label="Тени" :options="optionsOf(elevations)" />
@@ -212,6 +239,7 @@ const optionsOf = (obj) => Object.keys(obj).map((k) => ({ value: k, label: k }))
                 placeholder="Любой"
                 :options="['Москва', 'Санкт-Петербург', 'Новосибирск', 'Казань']"
               />
+              <FxCombobox v-model="owner" label="Ответственный" :options="people" :get-value="(p) => p.id" :get-label="(p) => p.name" placeholder="Поиск по имени" />
               <FxTextarea v-model="comment" label="Комментарий" placeholder="Необязательно" :rows="3" />
             </div>
           </FxCard>
@@ -347,7 +375,7 @@ const optionsOf = (obj) => Object.keys(obj).map((k) => ({ value: k, label: k }))
             <template #cell-status="{ row }"><FxBadge :tone="row.tone" dot>{{ row.status }}</FxBadge></template>
             <template #cell-actions>
               <FxDropdown>
-                <template #trigger><FxButton variant="ghost" size="sm" icon="more" /></template>
+                <template #trigger="{ props }"><FxButton v-bind="props" variant="ghost" size="sm" icon="more" /></template>
                 <FxMenuItem icon="eye">Открыть</FxMenuItem>
                 <FxMenuItem icon="edit">Редактировать</FxMenuItem>
                 <FxMenuItem icon="copy">Дублировать</FxMenuItem>
@@ -435,7 +463,9 @@ const optionsOf = (obj) => Object.keys(obj).map((k) => ({ value: k, label: k }))
             <template #header-actions>
               <FxButton variant="ghost" icon="bell" />
               <FxDropdown>
-                <template #trigger><FxAvatar name="Анна Ковалёва" size="sm" /></template>
+                <template #trigger="{ props }">
+                  <FxButton v-bind="props" variant="ghost" size="sm"><FxAvatar name="Анна Ковалёва" size="sm" /></FxButton>
+                </template>
                 <FxMenuItem icon="user">Профиль</FxMenuItem>
                 <FxMenuItem icon="settings">Настройки</FxMenuItem>
                 <FxMenuItem icon="logout" danger>Выйти</FxMenuItem>
@@ -462,6 +492,7 @@ const optionsOf = (obj) => Object.keys(obj).map((k) => ({ value: k, label: k }))
             <FxButton variant="secondary" @click="toast.success('Сохранено', 'Изменения применены')">Успех</FxButton>
             <FxButton variant="secondary" @click="toast.warning('Требуется внимание', 'Тариф истекает через 3 дня')">Внимание</FxButton>
             <FxButton variant="secondary" @click="toast.error('Ошибка', 'Не удалось связаться с сервером')">Ошибка</FxButton>
+            <FxButton variant="secondary" @click="toast.loading('Загрузка', 'Закройте крестиком')">Загрузка</FxButton>
           </div>
           <div class="showcase__row showcase__row--mt">
             <FxTooltip text="Подсказка появляется по наведению и по фокусу с клавиатуры">
@@ -540,7 +571,7 @@ const optionsOf = (obj) => Object.keys(obj).map((k) => ({ value: k, label: k }))
   height: 2.75rem;
   border-radius: var(--fx-radius);
   background: var(--fx-primary);
-  color: #fff;
+  color: var(--fx-on-primary);
   box-shadow: var(--fx-shadow-md);
 }
 .showcase__logo--sm { width: 1.75rem; height: 1.75rem; border-radius: var(--fx-radius-sm); box-shadow: none; }

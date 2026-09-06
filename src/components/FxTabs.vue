@@ -1,45 +1,61 @@
 <script setup>
 /**
- * FxTabs — горизонтальные вкладки-переключатели.
+ * FxTabs — горизонтальные вкладки на @zag-js/tabs: навигация стрелками,
+ * roving tabindex и ARIA от машины.
  *
  * Только заголовки: содержимое рисует приложение по v-model. Так вкладки можно
  * привязать к маршруту, не дублируя контент внутри компонента.
  *
  *   items: [{ value, label, icon?, count?, disabled? }]
  */
+import * as tabs from '@zag-js/tabs'
+import { normalizeProps, useMachine } from '@zag-js/vue'
+import { computed, useId } from 'vue'
 import FxIcon from './FxIcon.vue'
 
-defineProps({
+const props = defineProps({
   modelValue: { type: [String, Number], default: '' },
   items: { type: Array, default: () => [] },
   variant: { type: String, default: 'line' }, // line | pill
 })
 
-defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue'])
+
+const service = useMachine(tabs.machine, {
+  id: useId(),
+  get value() {
+    return props.modelValue === '' || props.modelValue == null ? null : String(props.modelValue)
+  },
+  onValueChange({ value }) {
+    const item = props.items.find((i) => String(i.value) === value)
+    emit('update:modelValue', item ? item.value : value)
+  },
+})
+
+const api = computed(() => tabs.connect(service, normalizeProps))
 </script>
 
 <template>
-  <div class="fx-tabs" :class="`fx-tabs--${variant}`" role="tablist">
-    <button
-      v-for="item in items"
-      :key="item.value"
-      class="fx-tabs__tab"
-      :class="{ 'fx-tabs__tab--active': item.value === modelValue }"
-      role="tab"
-      :aria-selected="item.value === modelValue"
-      :disabled="item.disabled"
-      @click="$emit('update:modelValue', item.value)"
-    >
-      <FxIcon v-if="item.icon" :name="item.icon" :size="15" />
-      {{ item.label }}
-      <span v-if="item.count != null" class="fx-tabs__count">{{ item.count }}</span>
-    </button>
+  <div class="fx-tabs" :class="`fx-tabs--${variant}`" v-bind="api.getRootProps()">
+    <div class="fx-tabs__list" v-bind="api.getListProps()">
+      <button
+        v-for="item in items"
+        :key="item.value"
+        class="fx-tabs__tab"
+        v-bind="api.getTriggerProps({ value: String(item.value), disabled: item.disabled })"
+      >
+        <FxIcon v-if="item.icon" :name="item.icon" :size="15" />
+        {{ item.label }}
+        <span v-if="item.count != null" class="fx-tabs__count">{{ item.count }}</span>
+      </button>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.fx-tabs { display: flex; align-items: center; gap: 0.25rem; overflow-x: auto; }
-.fx-tabs--line { border-bottom: 1px solid var(--fx-border); }
+.fx-tabs { overflow-x: auto; }
+.fx-tabs__list { display: flex; align-items: center; gap: 0.25rem; }
+.fx-tabs--line .fx-tabs__list { border-bottom: 1px solid var(--fx-border); }
 .fx-tabs__tab {
   display: inline-flex;
   align-items: center;
@@ -55,13 +71,15 @@ defineEmits(['update:modelValue'])
   white-space: nowrap;
   transition: color 0.15s, background 0.15s, border-color 0.15s;
 }
-.fx-tabs__tab:disabled { opacity: 0.5; cursor: not-allowed; }
+.fx-tabs__tab:focus { outline: none; }
+.fx-tabs__tab:focus-visible { outline: 2px solid var(--fx-primary); outline-offset: -2px; border-radius: var(--fx-radius-sm); }
+.fx-tabs__tab[data-disabled] { opacity: 0.5; cursor: not-allowed; }
 .fx-tabs--line .fx-tabs__tab { border-bottom: 2px solid transparent; margin-bottom: -1px; }
-.fx-tabs--line .fx-tabs__tab:hover:not(:disabled) { color: var(--fx-text); }
-.fx-tabs--line .fx-tabs__tab--active { color: var(--fx-primary); border-bottom-color: var(--fx-primary); }
+.fx-tabs--line .fx-tabs__tab:hover:not([data-disabled]) { color: var(--fx-text); }
+.fx-tabs--line .fx-tabs__tab[data-selected] { color: var(--fx-primary); border-bottom-color: var(--fx-primary); }
 .fx-tabs--pill .fx-tabs__tab { border-radius: 999px; padding: 0.4rem 0.85rem; }
-.fx-tabs--pill .fx-tabs__tab:hover:not(:disabled) { background: var(--fx-surface-muted); }
-.fx-tabs--pill .fx-tabs__tab--active { background: var(--fx-primary-soft); color: var(--fx-primary); }
+.fx-tabs--pill .fx-tabs__tab:hover:not([data-disabled]) { background: var(--fx-surface-muted); }
+.fx-tabs--pill .fx-tabs__tab[data-selected] { background: var(--fx-primary-soft); color: var(--fx-primary); }
 .fx-tabs__count {
   padding: 0.05rem 0.35rem;
   border-radius: 999px;
@@ -70,7 +88,5 @@ defineEmits(['update:modelValue'])
   font-weight: 600;
   color: var(--fx-text-muted);
 }
-/* Счётчик активной вкладки красится акцентом темы: currentColor берёт цвет
-   родителя, поэтому отдельная переменная под фон не нужна. */
-.fx-tabs__tab--active .fx-tabs__count { background: var(--fx-primary-soft); color: var(--fx-primary); }
+.fx-tabs__tab[data-selected] .fx-tabs__count { background: var(--fx-primary-soft); color: var(--fx-primary); }
 </style>

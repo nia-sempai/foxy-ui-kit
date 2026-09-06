@@ -1,11 +1,19 @@
 <script setup>
 /**
- * FxModal — модальное окно на нативном <dialog>.
+ * FxModal — модальное окно на @zag-js/dialog: фокус-трап, блокировка скролла,
+ * закрытие по Esc и возврат фокуса. Открытие управляется v-model.
  *
- * Нативный элемент даёт бесплатно: верхний слой над всей страницей, фокус-трап,
- * закрытие по Esc и ::backdrop. Открытие управляется v-model.
+ * Клик по фону по умолчанию не закрывает окно: случайный клик мимо формы не
+ * должен терять введённое. Включается пропом `close-on-outside`.
+ *
+ *   <FxModal v-model="open" title="Новый документ" size="md">
+ *     <form @submit.prevent="save">…</form>
+ *     <template #footer><FxButton variant="primary" @click="save">Сохранить</FxButton></template>
+ *   </FxModal>
  */
-import { ref, watch, onBeforeUnmount } from 'vue'
+import * as dialog from '@zag-js/dialog'
+import { normalizeProps, useMachine } from '@zag-js/vue'
+import { computed, useId } from 'vue'
 import FxIcon from './FxIcon.vue'
 
 const props = defineProps({
@@ -14,77 +22,75 @@ const props = defineProps({
   subtitle: { type: String, default: '' },
   size: { type: String, default: 'md' }, // sm | md | lg
   closable: { type: Boolean, default: true },
+  closeOnOutside: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['update:modelValue', 'close'])
 
-const dialog = ref(null)
-
-function close() {
-  emit('update:modelValue', false)
-  emit('close')
-}
-
-// Esc и клик по ::backdrop закрывают <dialog> сами — синхронизируем v-model.
-function onCancel(e) {
-  e.preventDefault()
-  if (props.closable) close()
-}
-
-watch(
-  () => props.modelValue,
-  (open) => {
-    const el = dialog.value
-    if (!el) return
-    if (open && !el.open) el.showModal()
-    if (!open && el.open) el.close()
+const service = useMachine(dialog.machine, {
+  id: useId(),
+  get open() {
+    return props.modelValue
   },
-  { flush: 'post' },
-)
-
-onBeforeUnmount(() => {
-  if (dialog.value?.open) dialog.value.close()
+  get closeOnInteractOutside() {
+    return props.closeOnOutside && props.closable
+  },
+  get closeOnEscape() {
+    return props.closable
+  },
+  onOpenChange({ open }) {
+    emit('update:modelValue', open)
+    if (!open) emit('close')
+  },
 })
+
+const api = computed(() => dialog.connect(service, normalizeProps))
 </script>
 
 <template>
-  <dialog
-    ref="dialog"
-    class="fx-modal"
-    :class="`fx-modal--${size}`"
-    @cancel="onCancel"
-    @click.self="closable && close()"
-  >
-    <div class="fx-modal__panel">
-      <header v-if="title || $slots.header" class="fx-modal__header">
-        <div class="fx-modal__heading">
-          <slot name="header">
-            <h2 class="fx-modal__title">{{ title }}</h2>
-            <p v-if="subtitle" class="fx-modal__subtitle">{{ subtitle }}</p>
-          </slot>
+  <Teleport to="body">
+    <template v-if="api.open">
+      <div class="fx-modal__backdrop" v-bind="api.getBackdropProps()" />
+      <div class="fx-modal__positioner" v-bind="api.getPositionerProps()">
+        <div class="fx-modal__panel" :class="`fx-modal__panel--${size}`" v-bind="api.getContentProps()">
+          <header v-if="title || $slots.header" class="fx-modal__header">
+            <div class="fx-modal__heading">
+              <slot name="header">
+                <h2 class="fx-modal__title" v-bind="api.getTitleProps()">{{ title }}</h2>
+                <p v-if="subtitle" class="fx-modal__subtitle" v-bind="api.getDescriptionProps()">{{ subtitle }}</p>
+              </slot>
+            </div>
+            <button v-if="closable" class="fx-modal__close" aria-label="Закрыть" v-bind="api.getCloseTriggerProps()">
+              <FxIcon name="close" :size="18" />
+            </button>
+          </header>
+          <div class="fx-modal__body"><slot /></div>
+          <footer v-if="$slots.footer" class="fx-modal__footer"><slot name="footer" /></footer>
         </div>
-        <button v-if="closable" class="fx-modal__close" aria-label="Закрыть" @click="close">
-          <FxIcon name="close" :size="18" />
-        </button>
-      </header>
-      <div class="fx-modal__body"><slot /></div>
-      <footer v-if="$slots.footer" class="fx-modal__footer"><slot name="footer" /></footer>
-    </div>
-  </dialog>
+      </div>
+    </template>
+  </Teleport>
 </template>
 
 <style scoped>
-.fx-modal {
-  padding: 0;
-  border: none;
-  background: none;
-  max-width: 100vw;
-  max-height: 100vh;
-  overflow: visible;
+.fx-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: var(--fx-overlay);
+  backdrop-filter: blur(2px);
 }
-.fx-modal::backdrop { background: rgba(15, 23, 42, 0.35); backdrop-filter: blur(2px); }
+.fx-modal__positioner {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
 .fx-modal__panel {
-  width: min(92vw, var(--fx-modal-w, 32rem));
+  width: min(92vw, var(--fx-modal-w, 34rem));
   max-height: 86vh;
   display: flex;
   flex-direction: column;
@@ -92,10 +98,11 @@ onBeforeUnmount(() => {
   border-radius: var(--fx-radius-lg);
   box-shadow: var(--fx-shadow-lg);
   overflow: hidden;
+  outline: none;
 }
-.fx-modal--sm { --fx-modal-w: 24rem; }
-.fx-modal--md { --fx-modal-w: 34rem; }
-.fx-modal--lg { --fx-modal-w: 52rem; }
+.fx-modal__panel--sm { --fx-modal-w: 24rem; }
+.fx-modal__panel--md { --fx-modal-w: 34rem; }
+.fx-modal__panel--lg { --fx-modal-w: 52rem; }
 .fx-modal__header {
   display: flex;
   align-items: flex-start;

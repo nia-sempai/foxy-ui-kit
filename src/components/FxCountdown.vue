@@ -68,7 +68,7 @@ const text = computed(() => {
 .fx-countdown--md { font-size: 0.9375rem; }
 .fx-countdown--lg { font-size: 1.5rem; letter-spacing: -0.01em; }
 .fx-countdown--normal { color: var(--fx-text); }
-.fx-countdown--warning { color: #b45309; }
+.fx-countdown--warning { color: var(--fx-warning-strong); }
 .fx-countdown--danger { color: var(--fx-danger); }
 .fx-countdown--ended { color: var(--fx-text-faint); font-weight: 500; }
 </style>

@@ -78,7 +78,7 @@ const iconPx = computed(() => ({ sm: 15, md: 17, lg: 19 })[props.size] ?? 17)
 .fx-btn--icon-only.fx-btn--sm { width: var(--fx-control-h-sm); }
 .fx-btn--icon-only.fx-btn--lg { width: 2.875rem; }
 
-.fx-btn--primary { background: var(--fx-primary); color: #fff; box-shadow: var(--fx-shadow-sm); }
+.fx-btn--primary { background: var(--fx-primary); color: var(--fx-on-primary); box-shadow: var(--fx-shadow-sm); }
 .fx-btn--primary:hover:not(:disabled) { background: var(--fx-primary-hover); }
 
 .fx-btn--secondary { background: var(--fx-surface); border-color: var(--fx-border-strong); color: var(--fx-text); }
@@ -87,11 +87,11 @@ const iconPx = computed(() => ({ sm: 15, md: 17, lg: 19 })[props.size] ?? 17)
 .fx-btn--ghost { background: transparent; color: var(--fx-text-muted); }
 .fx-btn--ghost:hover:not(:disabled) { background: var(--fx-surface-muted); color: var(--fx-text); }
 
-.fx-btn--danger { background: var(--fx-danger); color: #fff; }
-.fx-btn--danger:hover:not(:disabled) { background: #b91c1c; }
+.fx-btn--danger { background: var(--fx-danger); color: var(--fx-on-danger); }
+.fx-btn--danger:hover:not(:disabled) { background: var(--fx-danger-hover); }
 
-.fx-btn--success { background: var(--fx-success); color: #fff; }
-.fx-btn--success:hover:not(:disabled) { background: #047857; }
+.fx-btn--success { background: var(--fx-success); color: var(--fx-on-success); }
+.fx-btn--success:hover:not(:disabled) { background: var(--fx-success-hover); }
 
 .fx-btn--link { background: none; color: var(--fx-primary); padding: 0; min-height: 0; }
 .fx-btn--link:hover:not(:disabled) { text-decoration: underline; }

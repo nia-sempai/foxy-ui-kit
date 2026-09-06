@@ -1,44 +1,67 @@
 <script setup>
 /**
- * FxTooltip — всплывающая подсказка над обёрнутым элементом: расшифровка
- * статуса, пояснение к полю. Только hover/focus, без интерактива внутри:
- * для меню есть FxDropdown.
+ * FxTooltip — подсказка над обёрнутым элементом на @zag-js/tooltip: открывается
+ * по наведению и фокусу с задержкой, закрывается по Esc и уходу указателя.
+ * Пузырёк рендерится в <body>, поэтому не обрезается контейнерами с overflow.
+ *
+ *   <FxTooltip text="Расшифровка статуса"><FxBadge>В работе</FxBadge></FxTooltip>
  */
-defineProps({
+import * as tooltip from '@zag-js/tooltip'
+import { normalizeProps, useMachine } from '@zag-js/vue'
+import { computed, useId } from 'vue'
+
+const props = defineProps({
   text: { type: String, default: '' },
-  placement: { type: String, default: 'top' }, // top | bottom
+  placement: { type: String, default: 'top' }, // top | bottom | left | right
+  openDelay: { type: Number, default: 300 },
+  closeDelay: { type: Number, default: 100 },
+  disabled: { type: Boolean, default: false },
 })
+
+const service = useMachine(tooltip.machine, {
+  id: useId(),
+  get positioning() {
+    return { placement: props.placement }
+  },
+  get openDelay() {
+    return props.openDelay
+  },
+  get closeDelay() {
+    return props.closeDelay
+  },
+  get disabled() {
+    return props.disabled
+  },
+})
+
+const api = computed(() => tooltip.connect(service, normalizeProps))
 </script>
 
 <template>
-  <span class="fx-tooltip" :class="`fx-tooltip--${placement}`" tabindex="0">
+  <span class="fx-tooltip" tabindex="0" v-bind="api.getTriggerProps()">
     <slot />
-    <span class="fx-tooltip__bubble" role="tooltip"><slot name="content">{{ text }}</slot></span>
   </span>
+  <Teleport to="body">
+    <div v-if="api.open" v-bind="api.getPositionerProps()">
+      <div class="fx-tooltip__bubble" v-bind="api.getContentProps()">
+        <slot name="content">{{ text }}</slot>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <style scoped>
-.fx-tooltip { position: relative; display: inline-flex; outline: none; }
+.fx-tooltip { display: inline-flex; outline: none; }
+.fx-tooltip:focus-visible { outline: 2px solid var(--fx-primary); outline-offset: 2px; border-radius: var(--fx-radius-sm); }
 .fx-tooltip__bubble {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%) translateY(-0.2rem);
-  z-index: 80;
-  width: max-content;
+  z-index: 1200;
   max-width: 18rem;
   padding: 0.4rem 0.55rem;
-  background: #172033;
-  color: #fff;
+  background: var(--fx-tooltip-bg);
+  color: var(--fx-tooltip-text);
   border-radius: var(--fx-radius-sm);
   font-size: 0.75rem;
   line-height: 1.4;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.12s, visibility 0.12s;
-  pointer-events: none;
+  box-shadow: var(--fx-shadow-md);
 }
-.fx-tooltip--top .fx-tooltip__bubble { bottom: calc(100% + 0.35rem); }
-.fx-tooltip--bottom .fx-tooltip__bubble { top: calc(100% + 0.35rem); }
-.fx-tooltip:hover .fx-tooltip__bubble,
-.fx-tooltip:focus-visible .fx-tooltip__bubble { opacity: 1; visibility: visible; transform: translateX(-50%); }
 </style>

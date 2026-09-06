@@ -1,88 +1,77 @@
 <script setup>
 /**
- * FxFileUpload — зона загрузки файлов.
+ * FxFileUpload — зона загрузки файлов на @zag-js/file-upload: drag-and-drop,
+ * выбор по клику, проверка типа и размера, список выбранного с удалением.
  *
- * Компонент собирает метаданные выбранных файлов и отдаёт их через v-model;
- * сама отправка — забота приложения, поэтому кит не навязывает транспорт.
- * Поддерживает drag-and-drop и список выбранного с удалением.
+ * В v-model живут объекты File; отправка — забота приложения, кит не
+ * навязывает транспорт. Отклонённые файлы приходят событием `reject`.
+ *
+ *   <FxFileUpload v-model="files" accept=".pdf,application/pdf" :max-file-size="50 * 1024 * 1024" />
  */
-import { ref } from 'vue'
+import * as fileUpload from '@zag-js/file-upload'
+import { normalizeProps, useMachine } from '@zag-js/vue'
+import { computed, useId } from 'vue'
 import FxIcon from './FxIcon.vue'
 
 const props = defineProps({
   modelValue: { type: Array, default: () => [] },
   label: { type: String, default: 'Перетащите файлы или нажмите для выбора' },
-  hint: { type: String, default: 'PDF, DOCX, XLSX до 50 МБ' },
+  hint: { type: String, default: '' },
   accept: { type: String, default: '' },
   multiple: { type: Boolean, default: true },
+  maxFileSize: { type: Number, default: Infinity },
   disabled: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'reject'])
 
-const input = ref(null)
-const dragging = ref(false)
+const service = useMachine(fileUpload.machine, {
+  id: useId(),
+  locale: 'ru-RU',
+  get accept() {
+    return props.accept ? props.accept.split(',').map((s) => s.trim()).filter(Boolean) : undefined
+  },
+  get maxFiles() {
+    return props.multiple ? Infinity : 1
+  },
+  get maxFileSize() {
+    return props.maxFileSize
+  },
+  get disabled() {
+    return props.disabled
+  },
+  get acceptedFiles() {
+    return props.modelValue
+  },
+  onFileChange({ acceptedFiles, rejectedFiles }) {
+    emit('update:modelValue', acceptedFiles)
+    if (rejectedFiles.length) emit('reject', rejectedFiles)
+  },
+})
 
-function add(fileList) {
-  const files = Array.from(fileList).map((f) => ({
-    name: f.name,
-    size: f.size,
-    type: f.type,
-  }))
-  emit('update:modelValue', props.multiple ? [...props.modelValue, ...files] : files.slice(0, 1))
-}
-
-function onDrop(e) {
-  dragging.value = false
-  if (props.disabled) return
-  add(e.dataTransfer.files)
-}
-
-function remove(i) {
-  emit('update:modelValue', props.modelValue.filter((_, idx) => idx !== i))
-}
-
-function human(size) {
-  if (!size) return ''
-  const units = ['Б', 'КБ', 'МБ', 'ГБ']
-  let n = size
-  let u = 0
-  while (n >= 1024 && u < units.length - 1) { n /= 1024; u++ }
-  return `${n.toFixed(u === 0 ? 0 : 1)} ${units[u]}`
-}
+const api = computed(() => fileUpload.connect(service, normalizeProps))
 </script>
 
 <template>
-  <div class="fx-upload">
-    <button
-      type="button"
-      class="fx-upload__zone"
-      :class="{ 'fx-upload__zone--drag': dragging, 'fx-upload__zone--disabled': disabled }"
-      :disabled="disabled"
-      @click="input?.click()"
-      @dragover.prevent="dragging = true"
-      @dragleave.prevent="dragging = false"
-      @drop.prevent="onDrop"
-    >
+  <div class="fx-upload" v-bind="api.getRootProps()">
+    <div class="fx-upload__zone" v-bind="api.getDropzoneProps()">
       <FxIcon name="upload" :size="20" class="fx-upload__icon" />
       <span class="fx-upload__label">{{ label }}</span>
       <span v-if="hint" class="fx-upload__hint">{{ hint }}</span>
-    </button>
-    <input
-      ref="input"
-      type="file"
-      class="fx-upload__input"
-      :accept="accept"
-      :multiple="multiple"
-      @change="add($event.target.files); $event.target.value = ''"
-    />
+    </div>
+    <input v-bind="api.getHiddenInputProps()" />
 
-    <ul v-if="modelValue.length" class="fx-upload__list">
-      <li v-for="(file, i) in modelValue" :key="`${file.name}-${i}`" class="fx-upload__file">
+    <ul v-if="api.acceptedFiles.length" class="fx-upload__list" v-bind="api.getItemGroupProps()">
+      <li
+        v-for="file in api.acceptedFiles"
+        :key="`${file.name}-${file.size}-${file.lastModified}`"
+        class="fx-upload__file"
+        v-bind="api.getItemProps({ file })"
+      >
         <FxIcon name="document" :size="16" class="fx-upload__file-icon" />
-        <span class="fx-upload__file-name">{{ file.name }}</span>
-        <span class="fx-upload__file-size">{{ human(file.size) }}</span>
-        <button type="button" class="fx-upload__remove" aria-label="Удалить" @click="remove(i)">
+        <span class="fx-upload__file-name" v-bind="api.getItemNameProps({ file })">{{ file.name }}</span>
+        <span class="fx-upload__file-size" v-bind="api.getItemSizeTextProps({ file })">{{ api.getFileSize(file) }}</span>
+        <button class="fx-upload__remove" aria-label="Удалить" v-bind="api.getItemDeleteTriggerProps({ file })">
           <FxIcon name="close" :size="14" />
         </button>
       </li>
@@ -101,18 +90,18 @@ function human(size) {
   background: var(--fx-surface-muted);
   border: 1px dashed var(--fx-border-strong);
   border-radius: var(--fx-radius);
-  font: inherit;
   color: var(--fx-text-muted);
   cursor: pointer;
+  outline: none;
   transition: border-color 0.15s, background 0.15s;
 }
-.fx-upload__zone:hover:not(:disabled) { border-color: var(--fx-primary); background: var(--fx-primary-soft); }
-.fx-upload__zone--drag { border-color: var(--fx-primary); background: var(--fx-primary-soft); }
-.fx-upload__zone--disabled { opacity: 0.6; cursor: not-allowed; }
+.fx-upload__zone:hover:not([data-disabled]),
+.fx-upload__zone[data-dragging],
+.fx-upload__zone:focus-visible { border-color: var(--fx-primary); background: var(--fx-primary-soft); }
+.fx-upload__zone[data-disabled] { opacity: 0.6; cursor: not-allowed; }
 .fx-upload__icon { color: var(--fx-text-faint); }
 .fx-upload__label { font-size: 0.875rem; color: var(--fx-text); }
 .fx-upload__hint { font-size: 0.75rem; }
-.fx-upload__input { display: none; }
 .fx-upload__list { margin: 0.625rem 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 0.375rem; }
 .fx-upload__file {
   display: flex;

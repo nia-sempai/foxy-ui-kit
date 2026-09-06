@@ -1,7 +1,9 @@
 <script setup>
 /**
  * FxAvatar — инициалы пользователя или сущности в кружке.
- * Цвет детерминированно выводится из имени, чтобы не хранить его в данных.
+ * Оттенок детерминированно выводится из имени, чтобы не хранить его в данных;
+ * сами цвета берутся из семантических токенов темы, поэтому аватары
+ * перекрашиваются вместе с ней.
  */
 import { computed } from 'vue'
 import FxIcon from './FxIcon.vue'
@@ -23,21 +25,19 @@ const initials = computed(() =>
     .join(''),
 )
 
-const palette = ['#dbeafe/#1d4ed8', '#dcfce7/#047857', '#fef3c7/#b45309', '#ede9fe/#6d28d9', '#ffe4e6/#be123c', '#cffafe/#0e7490']
+const tones = ['primary', 'success', 'warning', 'info', 'danger']
 
-const colors = computed(() => {
+const tone = computed(() => {
   let hash = 0
   for (const ch of props.name) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0
-  const [bg, fg] = palette[hash % palette.length].split('/')
-  return { background: bg, color: fg }
+  return tones[hash % tones.length]
 })
 </script>
 
 <template>
   <span
     class="fx-avatar"
-    :class="[`fx-avatar--${size}`, { 'fx-avatar--square': square }]"
-    :style="colors"
+    :class="[`fx-avatar--${size}`, `fx-avatar--${tone}`, { 'fx-avatar--square': square }]"
     :title="name"
   >
     <FxIcon v-if="icon" :name="icon" :size="size === 'sm' ? 14 : size === 'lg' ? 22 : 17" />
@@ -59,4 +59,9 @@ const colors = computed(() => {
 .fx-avatar--sm { width: 1.75rem; height: 1.75rem; font-size: 0.6875rem; }
 .fx-avatar--md { width: 2.25rem; height: 2.25rem; font-size: 0.8125rem; }
 .fx-avatar--lg { width: 3rem; height: 3rem; font-size: 1rem; }
+.fx-avatar--primary { background: var(--fx-primary-soft); color: var(--fx-primary); }
+.fx-avatar--success { background: var(--fx-success-soft); color: var(--fx-success-strong); }
+.fx-avatar--warning { background: var(--fx-warning-soft); color: var(--fx-warning-strong); }
+.fx-avatar--info { background: var(--fx-info-soft); color: var(--fx-info-strong); }
+.fx-avatar--danger { background: var(--fx-danger-soft); color: var(--fx-danger-strong); }
 </style>

@@ -9,3 +9,4 @@ dist-demo
 !.yarn/versions
 .yarn/install-state.gz
 *.log
+.idea

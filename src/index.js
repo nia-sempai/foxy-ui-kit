@@ -1,5 +1,6 @@
 /**
- * foxy-ui-kit — светлый UI-kit на Vue 3 со сменными темами оформления.
+ * foxy-ui-kit — UI-kit на Vue 3 со сменными темами оформления и светлой /
+ * тёмной схемой. Интерактивные компоненты построены на машинах @zag-js.
  *
  * Точка входа: именованные экспорты компонентов + плагин для глобальной
  * регистрации. Стили токенов подключаются автоматически; базовый reset
@@ -21,6 +22,7 @@ import FxBadge from './components/FxBadge.vue'
 import FxButton from './components/FxButton.vue'
 import FxCard from './components/FxCard.vue'
 import FxCheckbox from './components/FxCheckbox.vue'
+import FxCombobox from './components/FxCombobox.vue'
 import FxCountdown from './components/FxCountdown.vue'
 import FxDescriptions from './components/FxDescriptions.vue'
 import FxDropdown from './components/FxDropdown.vue'
@@ -50,23 +52,23 @@ import FxToast from './components/FxToast.vue'
 import FxTooltip from './components/FxTooltip.vue'
 
 export {
-  FxAlert, FxAvatar, FxBadge, FxButton, FxCard, FxCheckbox, FxCountdown,
+  FxAlert, FxAvatar, FxBadge, FxButton, FxCard, FxCheckbox, FxCombobox, FxCountdown,
   FxDescriptions, FxDropdown, FxEmpty, FxFileUpload, FxFilterBar, FxIcon,
   FxInput, FxMenuItem, FxModal, FxMoney, FxPage, FxPagination, FxProgress,
   FxRadioGroup, FxSegmented, FxSelect, FxShell, FxStat, FxSteps, FxSwitch, FxTable,
   FxTabs, FxTextarea, FxTimeline, FxToast, FxTooltip,
 }
 
-export { iconNames, iconRegistry } from './components/icon-registry.js'
+export { iconNames, iconRegistry, registerIcons } from './components/icon-registry.js'
 export {
-  applyTheme, buildTheme, themeToCss, themes,
-  presets, neutrals, radiusScales, densities, elevations, fontStacks,
+  applyTheme, buildTheme, themeToCss, resolveScheme, themes, schemes,
+  presets, neutrals, semantics, radiusScales, densities, elevations, fontStacks,
 } from './theme.js'
-export { useToast, pushToast, dismissToast, toasts } from './composables/useToast.js'
+export { useToast, pushToast, dismissToast, toastStore } from './composables/useToast.js'
 export * from './format.js'
 
 const components = {
-  FxAlert, FxAvatar, FxBadge, FxButton, FxCard, FxCheckbox, FxCountdown,
+  FxAlert, FxAvatar, FxBadge, FxButton, FxCard, FxCheckbox, FxCombobox, FxCountdown,
   FxDescriptions, FxDropdown, FxEmpty, FxFileUpload, FxFilterBar, FxIcon,
   FxInput, FxMenuItem, FxModal, FxMoney, FxPage, FxPagination, FxProgress,
   FxRadioGroup, FxSegmented, FxSelect, FxShell, FxStat, FxSteps, FxSwitch, FxTable,

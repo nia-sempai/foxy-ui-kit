@@ -7,23 +7,27 @@
  * который применяется к любому элементу-контейнеру (обычно к :root).
  *
  *   import { applyTheme, themes } from 'foxy-ui-kit'
- *   applyTheme('slate')                       // готовый пресет
+ *   applyTheme('slate')                                  // готовый пресет
  *   applyTheme({ preset: 'ocean', radius: 'sharp', density: 'compact' })
- *   applyTheme({ accent: '#7c3aed' })         // свой акцент поверх базовой темы
+ *   applyTheme({ accent: '#7c3aed' })                    // свой акцент
+ *   applyTheme({ preset: 'scanflow', scheme: 'dark' })   // тёмная схема
+ *   applyTheme({ scheme: 'system' })                     // за системой
  *
  * Всё, что не задано, наследуется из tokens.css, поэтому частичная тема —
  * законная и самая частая форма настройки.
  */
+
+export const schemes = ['light', 'dark', 'system']
 
 /**
  * Пресеты акцента и нейтралей.
  *
  * Нейтрали задаются отдельно от акцента: одинаковый синий на холодном и на
  * тёплом сером выглядит как два разных бренда, и подбирать их порознь удобнее,
- * чем держать десяток почти одинаковых палитр.
+ * чем держать десяток почти одинаковых палитр. Пресет может уточнить нейтрали
+ * точечно через `neutralOverrides` — так живут проектные темы.
  */
 export const presets = {
-  // Базовый: холодный нейтральный фон, деловой синий. Подходит «по умолчанию».
   default: {
     label: 'Default',
     accent: '#2563eb',
@@ -31,7 +35,17 @@ export const presets = {
     accentSoft: '#eff6ff',
     neutral: 'cool',
   },
-  // Спокойный графитовый акцент: отчёты, админки, внутренние инструменты.
+  scanflow: {
+    label: 'ScanFlow',
+    accent: '#2563eb',
+    accentHover: '#1d4ed8',
+    accentSoft: '#eff6ff',
+    neutral: 'cool',
+    neutralOverrides: {
+      light: { bg: '#f8fafc', surfaceMuted: '#f1f5f9', border: '#e2e8f0', text: '#1e293b' },
+      dark: { bg: '#0f172a', surface: '#1e293b', surfaceMuted: '#273549', border: '#334155', borderStrong: '#475569' },
+    },
+  },
   slate: {
     label: 'Slate',
     accent: '#475569',
@@ -39,7 +53,6 @@ export const presets = {
     accentSoft: '#f1f5f9',
     neutral: 'cool',
   },
-  // Бирюзово-синий: финтех и дашборды, где много графиков.
   ocean: {
     label: 'Ocean',
     accent: '#0891b2',
@@ -47,7 +60,6 @@ export const presets = {
     accentSoft: '#ecfeff',
     neutral: 'cool',
   },
-  // Зелёный: сервисы про рост, здоровье, устойчивость.
   forest: {
     label: 'Forest',
     accent: '#059669',
@@ -55,7 +67,6 @@ export const presets = {
     accentSoft: '#ecfdf5',
     neutral: 'warm',
   },
-  // Фиолетовый: продуктовые и креативные интерфейсы.
   violet: {
     label: 'Violet',
     accent: '#7c3aed',
@@ -63,7 +74,6 @@ export const presets = {
     accentSoft: '#f5f3ff',
     neutral: 'cool',
   },
-  // Тёплый оранжевый: маркетплейсы, потребительские сервисы.
   amber: {
     label: 'Amber',
     accent: '#d97706',
@@ -71,7 +81,6 @@ export const presets = {
     accentSoft: '#fffbeb',
     neutral: 'warm',
   },
-  // Красно-розовый: медиа, события, всё, что должно быть заметным.
   rose: {
     label: 'Rose',
     accent: '#e11d48',
@@ -79,7 +88,6 @@ export const presets = {
     accentSoft: '#fff1f2',
     neutral: 'warm',
   },
-  // Почти чёрный акцент: минималистичные редакторские интерфейсы.
   mono: {
     label: 'Mono',
     accent: '#18181b',
@@ -89,37 +97,92 @@ export const presets = {
   },
 }
 
-/** Нейтральные шкалы: фон, поверхности, границы, текст. */
+/** Нейтральные шкалы: фон, поверхности, границы, текст — для обеих схем. */
 export const neutrals = {
   cool: {
-    bg: '#f6f8fb',
-    surface: '#ffffff',
-    surfaceMuted: '#f8fafc',
-    border: '#e4e9f0',
-    borderStrong: '#cbd5e1',
-    text: '#172033',
-    textMuted: '#64748b',
-    textFaint: '#94a3b8',
+    light: {
+      bg: '#f6f8fb',
+      surface: '#ffffff',
+      surfaceMuted: '#f8fafc',
+      border: '#e4e9f0',
+      borderStrong: '#cbd5e1',
+      text: '#172033',
+      textMuted: '#64748b',
+      textFaint: '#94a3b8',
+    },
+    dark: {
+      bg: '#0b1220',
+      surface: '#111a2b',
+      surfaceMuted: '#18233a',
+      border: '#24314a',
+      borderStrong: '#354764',
+      text: '#e5eaf3',
+      textMuted: '#9aa7bb',
+      textFaint: '#66748c',
+    },
   },
   warm: {
-    bg: '#faf9f7',
-    surface: '#ffffff',
-    surfaceMuted: '#f7f5f2',
-    border: '#ebe7e1',
-    borderStrong: '#d6cfc5',
-    text: '#26211c',
-    textMuted: '#6f665c',
-    textFaint: '#a39a8f',
+    light: {
+      bg: '#faf9f7',
+      surface: '#ffffff',
+      surfaceMuted: '#f7f5f2',
+      border: '#ebe7e1',
+      borderStrong: '#d6cfc5',
+      text: '#26211c',
+      textMuted: '#6f665c',
+      textFaint: '#a39a8f',
+    },
+    dark: {
+      bg: '#15120f',
+      surface: '#1c1814',
+      surfaceMuted: '#24201b',
+      border: '#302a24',
+      borderStrong: '#443c34',
+      text: '#efe9e2',
+      textMuted: '#a89e92',
+      textFaint: '#776d62',
+    },
   },
   plain: {
-    bg: '#fafafa',
-    surface: '#ffffff',
-    surfaceMuted: '#f4f4f5',
-    border: '#e7e7e9',
-    borderStrong: '#d0d0d4',
-    text: '#18181b',
-    textMuted: '#6b7280',
-    textFaint: '#a1a1aa',
+    light: {
+      bg: '#fafafa',
+      surface: '#ffffff',
+      surfaceMuted: '#f4f4f5',
+      border: '#e7e7e9',
+      borderStrong: '#d0d0d4',
+      text: '#18181b',
+      textMuted: '#6b7280',
+      textFaint: '#a1a1aa',
+    },
+    dark: {
+      bg: '#0f0f11',
+      surface: '#17171a',
+      surfaceMuted: '#1f1f23',
+      border: '#2a2a30',
+      borderStrong: '#3c3c44',
+      text: '#ededf0',
+      textMuted: '#a1a1aa',
+      textFaint: '#6b6b75',
+    },
+  },
+}
+
+/**
+ * Семантические цвета статусов. `strong` — текст на мягком фоне (бейджи,
+ * плашки), `soft` в тёмной схеме выводится смешиванием с поверхностью.
+ */
+export const semantics = {
+  light: {
+    success: { base: '#059669', hover: '#047857', soft: '#ecfdf5', strong: '#065f46' },
+    warning: { base: '#f59e0b', hover: '#d97706', soft: '#fffbeb', strong: '#b45309' },
+    danger: { base: '#dc2626', hover: '#b91c1c', soft: '#fef2f2', strong: '#991b1b' },
+    info: { base: '#4f46e5', hover: '#4338ca', soft: '#eef2ff', strong: '#3730a3' },
+  },
+  dark: {
+    success: { base: '#34d399', hover: '#6ee7b7', strong: '#6ee7b7' },
+    warning: { base: '#fbbf24', hover: '#fcd34d', strong: '#fcd34d' },
+    danger: { base: '#f87171', hover: '#fca5a5', strong: '#fca5a5' },
+    info: { base: '#818cf8', hover: '#a5b4fc', strong: '#a5b4fc' },
   },
 }
 
@@ -142,19 +205,16 @@ export const densities = {
 /** Тени: от плоского интерфейса до выраженной глубины. */
 export const elevations = {
   flat: {
-    sm: 'none',
-    md: '0 1px 2px rgba(15, 23, 42, 0.06)',
-    lg: '0 6px 20px rgba(15, 23, 42, 0.10)',
+    light: { sm: 'none', md: '0 1px 2px rgba(15, 23, 42, 0.06)', lg: '0 6px 20px rgba(15, 23, 42, 0.10)' },
+    dark: { sm: 'none', md: '0 1px 2px rgba(0, 0, 0, 0.3)', lg: '0 6px 20px rgba(0, 0, 0, 0.45)' },
   },
   default: {
-    sm: '0 1px 2px rgba(15, 23, 42, 0.05)',
-    md: '0 4px 16px rgba(15, 23, 42, 0.08)',
-    lg: '0 18px 44px rgba(15, 23, 42, 0.14)',
+    light: { sm: '0 1px 2px rgba(15, 23, 42, 0.05)', md: '0 4px 16px rgba(15, 23, 42, 0.08)', lg: '0 18px 44px rgba(15, 23, 42, 0.14)' },
+    dark: { sm: '0 1px 2px rgba(0, 0, 0, 0.35)', md: '0 4px 16px rgba(0, 0, 0, 0.45)', lg: '0 18px 44px rgba(0, 0, 0, 0.6)' },
   },
   lifted: {
-    sm: '0 1px 3px rgba(15, 23, 42, 0.08)',
-    md: '0 8px 24px rgba(15, 23, 42, 0.12)',
-    lg: '0 24px 60px rgba(15, 23, 42, 0.20)',
+    light: { sm: '0 1px 3px rgba(15, 23, 42, 0.08)', md: '0 8px 24px rgba(15, 23, 42, 0.12)', lg: '0 24px 60px rgba(15, 23, 42, 0.20)' },
+    dark: { sm: '0 1px 3px rgba(0, 0, 0, 0.45)', md: '0 8px 24px rgba(0, 0, 0, 0.55)', lg: '0 24px 60px rgba(0, 0, 0, 0.7)' },
   },
 }
 
@@ -166,6 +226,13 @@ export const fontStacks = {
   mono: "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace",
 }
 
+/** Сводит `system` к конкретной схеме по настройке ОС; вне браузера — light. */
+export function resolveScheme(scheme = 'light') {
+  if (scheme !== 'system') return scheme === 'dark' ? 'dark' : 'light'
+  if (typeof window === 'undefined' || !window.matchMedia) return 'light'
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
 /**
  * Собирает карту CSS-переменных для темы.
  *
@@ -174,30 +241,47 @@ export const fontStacks = {
  */
 export function buildTheme(theme = {}) {
   const spec = typeof theme === 'string' ? { preset: theme } : theme
+  const scheme = resolveScheme(spec.scheme)
+  const dark = scheme === 'dark'
   const preset = presets[spec.preset] ?? presets.default
-  const neutral = neutrals[spec.neutral ?? preset.neutral] ?? neutrals.cool
+  const neutralFamily = neutrals[spec.neutral ?? preset.neutral] ?? neutrals.cool
+  const neutral = {
+    ...neutralFamily[scheme],
+    ...(spec.neutral ? {} : preset.neutralOverrides?.[scheme]),
+    ...(spec.bg ? { bg: spec.bg } : {}),
+    ...(spec.surface ? { surface: spec.surface } : {}),
+  }
   const radius = radiusScales[spec.radius] ?? radiusScales.default
   const density = densities[spec.density] ?? densities.default
-  const elevation = elevations[spec.elevation] ?? elevations.default
+  const elevation = (elevations[spec.elevation] ?? elevations.default)[scheme]
   const font = fontStacks[spec.font] ?? spec.font ?? fontStacks.system
 
-  const accent = spec.accent ?? preset.accent
-  const accentHover = spec.accentHover ?? (spec.accent ? shade(accent, -0.12) : preset.accentHover)
-  const accentSoft = spec.accentSoft ?? (spec.accent ? tint(accent, 0.92) : preset.accentSoft)
+  const baseAccent = spec.accent ?? preset.accent
+  const accent = dark ? tint(baseAccent, 0.12) : baseAccent
+  const accentHover = spec.accentHover
+    ?? (dark ? tint(accent, 0.14) : spec.accent ? shade(accent, -0.12) : preset.accentHover)
+  const accentSoft = spec.accentSoft
+    ?? (dark ? mix(accent, neutral.surface, 0.22) : spec.accent ? tint(accent, 0.92) : preset.accentSoft)
 
-  return {
+  const vars = {
     '--fx-primary': accent,
     '--fx-primary-hover': accentHover,
     '--fx-primary-soft': accentSoft,
+    '--fx-on-primary': onColor(accent),
 
-    '--fx-bg': spec.bg ?? neutral.bg,
-    '--fx-surface': spec.surface ?? neutral.surface,
+    '--fx-bg': neutral.bg,
+    '--fx-surface': neutral.surface,
     '--fx-surface-muted': neutral.surfaceMuted,
     '--fx-border': neutral.border,
     '--fx-border-strong': neutral.borderStrong,
     '--fx-text': neutral.text,
     '--fx-text-muted': neutral.textMuted,
     '--fx-text-faint': neutral.textFaint,
+
+    '--fx-overlay': dark ? 'rgba(0, 0, 0, 0.6)' : 'rgba(15, 23, 42, 0.35)',
+    '--fx-tooltip-bg': dark ? neutral.text : '#172033',
+    '--fx-tooltip-text': dark ? neutral.bg : '#ffffff',
+    '--fx-selection': mix(accent, neutral.surface, dark ? 0.4 : 0.2),
 
     '--fx-radius-sm': radius.sm,
     '--fx-radius': radius.md,
@@ -213,39 +297,72 @@ export function buildTheme(theme = {}) {
 
     '--fx-font': font,
   }
+
+  for (const [name, tone] of Object.entries(semantics[scheme])) {
+    vars[`--fx-${name}`] = tone.base
+    vars[`--fx-${name}-hover`] = tone.hover
+    vars[`--fx-${name}-soft`] = tone.soft ?? mix(tone.base, neutral.surface, 0.18)
+    vars[`--fx-${name}-strong`] = tone.strong
+    vars[`--fx-on-${name}`] = onColor(tone.base)
+  }
+
+  return vars
 }
 
 /**
  * Применяет тему к элементу (по умолчанию к :root).
  *
- * Возвращает функцию отката — удобно для витрин и предпросмотра, где тема
- * временная.
+ * Помимо переменных выставляет `data-fx-scheme` и `color-scheme`, чтобы
+ * нативные контролы и скроллбары следовали схеме. При `scheme: 'system'`
+ * подписывается на смену системной темы. Возвращает функцию отката — удобно
+ * для витрин и предпросмотра, где тема временная.
  */
 export function applyTheme(theme = {}, target = null) {
   const el = target ?? (typeof document !== 'undefined' ? document.documentElement : null)
   if (!el) return () => {}
 
-  const vars = buildTheme(theme)
+  const spec = typeof theme === 'string' ? { preset: theme } : theme
   const previous = {}
-  for (const [key, value] of Object.entries(vars)) {
-    previous[key] = el.style.getPropertyValue(key)
-    el.style.setProperty(key, value)
+  const previousScheme = el.getAttribute('data-fx-scheme')
+  const previousColorScheme = el.style.colorScheme
+
+  const paint = () => {
+    const vars = buildTheme(spec)
+    for (const [key, value] of Object.entries(vars)) {
+      if (!(key in previous)) previous[key] = el.style.getPropertyValue(key)
+      el.style.setProperty(key, value)
+    }
+    const scheme = resolveScheme(spec.scheme)
+    el.setAttribute('data-fx-scheme', scheme)
+    el.style.colorScheme = scheme
+  }
+
+  paint()
+
+  let media = null
+  if (spec.scheme === 'system' && typeof window !== 'undefined' && window.matchMedia) {
+    media = window.matchMedia('(prefers-color-scheme: dark)')
+    media.addEventListener('change', paint)
   }
 
   return () => {
+    media?.removeEventListener('change', paint)
     for (const [key, value] of Object.entries(previous)) {
       if (value) el.style.setProperty(key, value)
       else el.style.removeProperty(key)
     }
+    if (previousScheme) el.setAttribute('data-fx-scheme', previousScheme)
+    else el.removeAttribute('data-fx-scheme')
+    el.style.colorScheme = previousColorScheme
   }
 }
 
 /** Тема как строка для атрибута style или тега <style>. */
 export function themeToCss(theme = {}, selector = ':root') {
-  const body = Object.entries(buildTheme(theme))
-    .map(([k, v]) => `  ${k}: ${v};`)
-    .join('\n')
-  return `${selector} {\n${body}\n}`
+  const spec = typeof theme === 'string' ? { preset: theme } : theme
+  const lines = Object.entries(buildTheme(spec)).map(([k, v]) => `  ${k}: ${v};`)
+  lines.push(`  color-scheme: ${resolveScheme(spec.scheme)};`)
+  return `${selector} {\n${lines.join('\n')}\n}`
 }
 
 /** Список готовых тем для переключателей в интерфейсе. */
@@ -255,7 +372,7 @@ export const themes = Object.entries(presets).map(([value, p]) => ({
   accent: p.accent,
 }))
 
-// --- вспомогательное: смешивание цвета с чёрным/белым ---
+// --- вспомогательное: смешивание цветов ---
 
 function parseHex(hex) {
   const s = hex.replace('#', '')
@@ -277,4 +394,21 @@ function shade(hex, amount) {
 /** Смешивает цвет с белым: 0 — исходный, 1 — белый. */
 function tint(hex, amount) {
   return shade(hex, amount)
+}
+
+/** Смешивает два цвета: weight — доля первого. */
+function mix(a, b, weight) {
+  const ra = parseHex(a)
+  const rb = parseHex(b)
+  return toHex(ra.map((c, i) => c * weight + rb[i] * (1 - weight)))
+}
+
+/** Цвет текста поверх заливки: белый на тёмном, почти чёрный на светлом. */
+function onColor(hex) {
+  const [r, g, b] = parseHex(hex).map((c) => {
+    const v = c / 255
+    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
+  })
+  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b
+  return luminance > 0.45 ? '#0f172a' : '#ffffff'
 }

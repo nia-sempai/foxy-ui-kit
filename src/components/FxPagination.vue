@@ -1,12 +1,16 @@
 <script setup>
 /**
- * FxPagination — постраничная навигация.
+ * FxPagination — постраничная навигация на @zag-js/pagination.
  *
  * Контролируемая: компонент не хранит состояние, а сообщает нужную страницу
- * через update:page. Список страниц сворачивается многоточиями, чтобы ширина
+ * через update:page. Диапазон страниц сворачивается многоточиями, чтобы ширина
  * не зависела от объёма выборки.
+ *
+ *   <FxPagination v-model:page="page" :page-size="20" :total="total" />
  */
-import { computed } from 'vue'
+import * as pagination from '@zag-js/pagination'
+import { normalizeProps, useMachine } from '@zag-js/vue'
+import { computed, useId } from 'vue'
 import FxIcon from './FxIcon.vue'
 
 const props = defineProps({
@@ -14,52 +18,54 @@ const props = defineProps({
   pageSize: { type: Number, default: 20 },
   total: { type: Number, default: 0 },
   siblings: { type: Number, default: 1 },
+  showInfo: { type: Boolean, default: true },
 })
 
 const emit = defineEmits(['update:page'])
 
-const pageCount = computed(() => Math.max(1, Math.ceil(props.total / props.pageSize)))
-
-// Окно вокруг текущей страницы + первая/последняя, разрывы помечаем '…'.
-const items = computed(() => {
-  const last = pageCount.value
-  const from = Math.max(2, props.page - props.siblings)
-  const to = Math.min(last - 1, props.page + props.siblings)
-  const out = [1]
-  if (from > 2) out.push('…')
-  for (let p = from; p <= to; p++) out.push(p)
-  if (to < last - 1) out.push('…')
-  if (last > 1) out.push(last)
-  return out
+const service = useMachine(pagination.machine, {
+  id: useId(),
+  translations: {
+    rootLabel: 'Постраничная навигация',
+    prevTriggerLabel: 'Назад',
+    nextTriggerLabel: 'Вперёд',
+    itemLabel: ({ page }) => `Страница ${page}`,
+  },
+  get count() {
+    return props.total
+  },
+  get pageSize() {
+    return props.pageSize || 1
+  },
+  get siblingCount() {
+    return props.siblings
+  },
+  get page() {
+    return props.page
+  },
+  onPageChange({ page }) {
+    if (page !== props.page) emit('update:page', page)
+  },
 })
 
-const rangeFrom = computed(() => (props.page - 1) * props.pageSize + 1)
-const rangeTo = computed(() => Math.min(props.page * props.pageSize, props.total))
+const api = computed(() => pagination.connect(service, normalizeProps))
 
-function go(p) {
-  const next = Math.min(pageCount.value, Math.max(1, p))
-  if (next !== props.page) emit('update:page', next)
-}
+const rangeFrom = computed(() => (props.total ? api.value.pageRange.start + 1 : 0))
+const rangeTo = computed(() => api.value.pageRange.end)
 </script>
 
 <template>
-  <nav class="fx-pagination" aria-label="Постраничная навигация">
-    <span class="fx-pagination__info">{{ rangeFrom }}–{{ rangeTo }} из {{ total }}</span>
+  <nav class="fx-pagination" v-bind="api.getRootProps()">
+    <span v-if="showInfo" class="fx-pagination__info">{{ rangeFrom }}–{{ rangeTo }} из {{ total }}</span>
     <div class="fx-pagination__pages">
-      <button class="fx-pagination__nav" :disabled="page <= 1" aria-label="Назад" @click="go(page - 1)">
+      <button class="fx-pagination__nav" v-bind="api.getPrevTriggerProps()">
         <FxIcon name="chevron-left" :size="16" />
       </button>
-      <template v-for="(item, i) in items" :key="`${item}-${i}`">
-        <span v-if="item === '…'" class="fx-pagination__gap">…</span>
-        <button
-          v-else
-          class="fx-pagination__page"
-          :class="{ 'fx-pagination__page--active': item === page }"
-          :aria-current="item === page ? 'page' : null"
-          @click="go(item)"
-        >{{ item }}</button>
+      <template v-for="(item, i) in api.pages" :key="item.type === 'page' ? item.value : `ellipsis-${i}`">
+        <span v-if="item.type === 'ellipsis'" class="fx-pagination__gap" v-bind="api.getEllipsisProps({ index: i })">…</span>
+        <button v-else class="fx-pagination__page" v-bind="api.getItemProps(item)">{{ item.value }}</button>
       </template>
-      <button class="fx-pagination__nav" :disabled="page >= pageCount" aria-label="Вперёд" @click="go(page + 1)">
+      <button class="fx-pagination__nav" v-bind="api.getNextTriggerProps()">
         <FxIcon name="chevron-right" :size="16" />
       </button>
     </div>
@@ -77,11 +83,11 @@ function go(p) {
   border-top: 1px solid var(--fx-border);
 }
 .fx-pagination__info { font-size: 0.8125rem; color: var(--fx-text-muted); }
-.fx-pagination__pages { display: flex; align-items: center; gap: 0.25rem; }
+.fx-pagination__pages { display: flex; align-items: center; gap: 0.25rem; margin-left: auto; }
 .fx-pagination__page,
 .fx-pagination__nav {
-  min-width: 2rem;
-  height: 2rem;
+  min-width: var(--fx-control-h-sm);
+  height: var(--fx-control-h-sm);
   padding: 0 0.4rem;
   display: inline-flex;
   align-items: center;
@@ -96,7 +102,7 @@ function go(p) {
 }
 .fx-pagination__page:hover,
 .fx-pagination__nav:hover:not(:disabled) { background: var(--fx-surface-muted); color: var(--fx-text); }
-.fx-pagination__page--active {
+.fx-pagination__page[data-selected] {
   background: var(--fx-primary-soft);
   border-color: currentColor;
   color: var(--fx-primary);

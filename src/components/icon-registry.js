@@ -10,16 +10,16 @@
  * добавляйте в приложении через проп `component` или собственный реестр.
  */
 import {
-  Activity, AlertTriangle, ArrowDown, ArrowLeft, ArrowRight, ArrowUp,
+  Activity, AlertTriangle, ArchiveRestore, ArrowDown, ArrowLeft, ArrowRight, ArrowUp,
   BadgeCheck, Banknote, Bell, Bookmark, Building2, Calendar, Check,
   ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Clipboard, Clock,
   Copy, CreditCard, Database, Download, ExternalLink, Eye, EyeOff, File,
-  FileText, Filter, Folder, FolderOpen, Globe, Heart, Home, Image, Info,
-  KeyRound, LayoutDashboard, LifeBuoy, Link, ListChecks, Loader2, Lock,
+  FileText, FileUp, Filter, Folder, FolderInput, FolderOpen, Globe, Heart, Home, Image, Info,
+  KeyRound, LayoutDashboard, LayoutGrid, LifeBuoy, Link, List, ListChecks, Loader2, Lock,
   LogIn, LogOut, Mail, MapPin, Menu, MessageSquare, MinusCircle,
   MoreHorizontal, MoreVertical, Paperclip, Pencil, Percent, Phone, Play,
-  Plus, RefreshCw, Save, Search, Send, Settings, Share2, Shield,
-  ShieldCheck, SlidersHorizontal, Star, Tag, Trash2, TrendingDown,
+  Plus, RefreshCw, RotateCw, Save, Scissors, Search, Send, Settings, Share2, Shield,
+  ShieldCheck, SlidersHorizontal, Star, Sun, Moon, Tag, Trash2, TrendingDown,
   TrendingUp, Upload, User, Users, Wallet, X, XCircle, Zap,
 } from 'lucide-vue-next'
 
@@ -51,6 +51,11 @@ export const iconRegistry = {
   filter: Filter,
   sliders: SlidersHorizontal,
   refresh: RefreshCw,
+  rotate: RotateCw,
+  scissors: Scissors,
+  restore: ArchiveRestore,
+  'file-up': FileUp,
+  move: FolderInput,
   upload: Upload,
   download: Download,
   share: Share2,
@@ -80,6 +85,8 @@ export const iconRegistry = {
   image: Image,
   clipboard: Clipboard,
   checklist: ListChecks,
+  list: List,
+  grid: LayoutGrid,
   database: Database,
   tag: Tag,
   bookmark: Bookmark,
@@ -120,6 +127,17 @@ export const iconRegistry = {
   globe: Globe,
   settings: Settings,
   help: LifeBuoy,
+  sun: Sun,
+  moon: Moon,
+}
+
+/**
+ * Расширяет реестр из приложения: registerIcons({ rescan: RotateCw }). Имена
+ * действуют для всех компонентов кита, включая проп `icon` у FxButton.
+ */
+export function registerIcons(icons) {
+  Object.assign(iconRegistry, icons)
+  iconNames.splice(0, iconNames.length, ...Object.keys(iconRegistry))
 }
 
 export const iconNames = Object.keys(iconRegistry)

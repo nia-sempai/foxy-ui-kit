@@ -122,7 +122,7 @@ const open = ref(false)
   padding: 0.05rem 0.35rem;
   border-radius: 999px;
   background: var(--fx-danger);
-  color: #fff;
+  color: var(--fx-on-danger);
   font-size: 0.6875rem;
   font-weight: 600;
 }
@@ -138,7 +138,7 @@ const open = ref(false)
   gap: 0.75rem;
   height: 3.75rem;
   padding: 0 1.25rem;
-  background: rgba(255, 255, 255, 0.85);
+  background: color-mix(in srgb, var(--fx-surface) 85%, transparent);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--fx-border);
 }
@@ -169,7 +169,7 @@ const open = ref(false)
     position: fixed;
     inset: 0;
     z-index: 60;
-    background: rgba(15, 23, 42, 0.3);
+    background: var(--fx-overlay);
   }
   .fx-shell__burger { display: inline-flex; }
 }
