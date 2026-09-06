@@ -54,6 +54,7 @@ const files = ref([{ name: 'Отчёт за квартал.pdf', size: 482301 }]
 const tab = ref('all')
 const view = ref('table')
 const page = ref(1)
+const standalonePage = ref(3)
 const sortKey = ref('amount')
 const sortDir = ref('desc')
 const modal = ref(false)
@@ -396,6 +397,14 @@ const optionsOf = (obj) => Object.keys(obj).map((k) => ({ value: k, label: k }))
                 { key: 'size', label: 'Вложения', value: formatBytes(482301) },
                 { key: 'desc', label: 'Описание', value: 'Перевод оплаты на новый провайдер, миграция токенов.', wide: true },
               ]"
+            />
+          </FxCard>
+
+          <FxCard title="Пагинация" subtitle="Работает и отдельно от таблицы" padding="none">
+            <FxPagination
+              v-model:page="standalonePage"
+              :page-size="20"
+              :total="640"
             />
           </FxCard>
 
