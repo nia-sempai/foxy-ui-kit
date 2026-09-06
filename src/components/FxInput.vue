@@ -8,9 +8,22 @@
  *
  *   <FxInput v-model="query" label="Поиск" prefix-icon="search" :error="err" />
  */
+import { computed, useAttrs } from 'vue'
 import FxIcon from './FxIcon.vue'
 
 defineOptions({ inheritAttrs: false })
+
+/*
+ * Атрибуты разделяются: class и style остаются на корне (иначе layout-классы
+ * из родителя не могут задать ширину поля в строке фильтров), остальное —
+ * autocomplete, inputmode, min, обработчики — уходит на сам контрол.
+ */
+const attrs = useAttrs()
+const rootAttrs = computed(() => ({ class: attrs.class, style: attrs.style }))
+const controlAttrs = computed(() => {
+  const { class: _c, style: _s, ...rest } = attrs
+  return rest
+})
 
 defineProps({
   modelValue: { type: [String, Number], default: '' },
@@ -30,7 +43,7 @@ defineEmits(['update:modelValue'])
 </script>
 
 <template>
-  <label class="fx-input">
+  <label class="fx-input" v-bind="rootAttrs">
     <span v-if="label" class="fx-input__label">
       {{ label }}<span v-if="required" class="fx-input__req">*</span>
     </span>
@@ -48,7 +61,7 @@ defineEmits(['update:modelValue'])
         :disabled="disabled"
         :readonly="readonly"
         :aria-invalid="error ? 'true' : null"
-        v-bind="$attrs"
+        v-bind="controlAttrs"
         @input="$emit('update:modelValue', $event.target.value)"
       />
       <span v-if="suffix" class="fx-input__suffix">{{ suffix }}</span>

@@ -3,7 +3,21 @@
  * FxTextarea — многострочное поле. Подпись, подсказка и ошибка ведут себя так
  * же, как у FxInput, чтобы формы выглядели однородно.
  */
+import { computed, useAttrs } from 'vue'
+
 defineOptions({ inheritAttrs: false })
+
+/*
+ * Атрибуты разделяются: class и style остаются на корне (иначе layout-классы
+ * из родителя не могут задать ширину поля в строке фильтров), остальное —
+ * autocomplete, inputmode, min, обработчики — уходит на сам контрол.
+ */
+const attrs = useAttrs()
+const rootAttrs = computed(() => ({ class: attrs.class, style: attrs.style }))
+const controlAttrs = computed(() => {
+  const { class: _c, style: _s, ...rest } = attrs
+  return rest
+})
 
 defineProps({
   modelValue: { type: String, default: '' },
@@ -20,7 +34,7 @@ defineEmits(['update:modelValue'])
 </script>
 
 <template>
-  <label class="fx-textarea">
+  <label class="fx-textarea" v-bind="rootAttrs">
     <span v-if="label" class="fx-textarea__label">
       {{ label }}<span v-if="required" class="fx-textarea__req">*</span>
     </span>
@@ -32,7 +46,7 @@ defineEmits(['update:modelValue'])
       :placeholder="placeholder"
       :required="required"
       :disabled="disabled"
-      v-bind="$attrs"
+      v-bind="controlAttrs"
       @input="$emit('update:modelValue', $event.target.value)"
     />
     <span v-if="error" class="fx-textarea__error">{{ error }}</span>

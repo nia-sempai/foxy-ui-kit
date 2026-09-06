@@ -6,10 +6,22 @@
  * работает на мобильных и не тянет зависимостей. Опции — массив строк или
  * объектов { value, label }.
  */
-import { computed } from 'vue'
+import { computed, useAttrs } from 'vue'
 import FxIcon from './FxIcon.vue'
 
 defineOptions({ inheritAttrs: false })
+
+/*
+ * Атрибуты разделяются: class и style остаются на корне (иначе layout-классы
+ * из родителя не могут задать ширину поля в строке фильтров), остальное —
+ * autocomplete, inputmode, min, обработчики — уходит на сам контрол.
+ */
+const attrs = useAttrs()
+const rootAttrs = computed(() => ({ class: attrs.class, style: attrs.style }))
+const controlAttrs = computed(() => {
+  const { class: _c, style: _s, ...rest } = attrs
+  return rest
+})
 
 const props = defineProps({
   modelValue: { type: [String, Number, null], default: '' },
@@ -30,7 +42,7 @@ const items = computed(() =>
 </script>
 
 <template>
-  <label class="fx-select">
+  <label class="fx-select" v-bind="rootAttrs">
     <span v-if="label" class="fx-select__label">
       {{ label }}<span v-if="required" class="fx-select__req">*</span>
     </span>
@@ -43,7 +55,7 @@ const items = computed(() =>
         :value="modelValue"
         :required="required"
         :disabled="disabled"
-        v-bind="$attrs"
+        v-bind="controlAttrs"
         @change="$emit('update:modelValue', $event.target.value)"
       >
         <option v-if="placeholder" value="">{{ placeholder }}</option>
