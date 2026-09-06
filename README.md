@@ -1,12 +1,12 @@
 # foxy-ui-kit
 
-Светлый UI-kit на Vue 3 для электронных торговых площадок (223-ФЗ / 44-ФЗ).
+Светлый UI-kit на Vue 3 со сменными темами оформления.
 
-**Витрина компонентов: <https://nia-sempai.github.io/foxy-ui-kit/>**
+**Витрина и конструктор темы: <https://nia-sempai.github.io/foxy-ui-kit/>**
 
-32 компонента, доменные форматтеры (деньги, ИНН, комиссия площадки), светлая
-тема без тёмного варианта: интерфейс площадки состоит из таблиц и цифр, и
-контраст должен работать на данные, а не на оформление.
+32 компонента, 79 иконок, восемь готовых тем и конструктор своей. Разметка и
+поведение компонентов одни и те же, а стилистика подбирается под проект: цвет,
+нейтрали, скругления, плотность, тени и шрифт задаются CSS-переменными.
 
 ## Установка
 
@@ -48,6 +48,45 @@ import { FxButton, FxTable, FxMoney } from 'foxy-ui-kit'
 import 'foxy-ui-kit/src/base.css'
 ```
 
+## Темы
+
+Тема — это набор значений для переменных `--fx-*`. Меняется в рантайме, без
+пересборки стилей.
+
+```js
+import { applyTheme } from 'foxy-ui-kit'
+
+applyTheme('violet')                                    // готовый пресет
+applyTheme({ preset: 'ocean', radius: 'sharp' })        // пресет с правками
+applyTheme({ accent: '#e11d48', density: 'compact' })   // свой акцент
+```
+
+| Ось | Значения |
+|---|---|
+| `preset` | `default`, `slate`, `ocean`, `forest`, `violet`, `amber`, `rose`, `mono` |
+| `neutral` | `cool`, `warm`, `plain` |
+| `radius` | `sharp`, `subtle`, `default`, `soft`, `pill` |
+| `density` | `compact`, `default`, `comfortable` |
+| `elevation` | `flat`, `default`, `lifted` |
+| `font` | `system`, `grotesk`, `serif`, `mono` или своя строка |
+
+Не заданные оси наследуются из `tokens.css`, поэтому частичная тема — обычный
+способ настройки. Для статической темы удобнее сгенерировать CSS один раз:
+
+```js
+import { themeToCss } from 'foxy-ui-kit'
+themeToCss({ preset: 'forest', radius: 'soft' })  // ':root { --fx-primary: … }'
+```
+
+Отдельные переменные всегда можно переопределить руками:
+
+```css
+:root {
+  --fx-primary: #0f62fe;
+  --fx-radius: 10px;
+}
+```
+
 ## Компоненты
 
 | Группа | Компоненты |
@@ -57,42 +96,31 @@ import 'foxy-ui-kit/src/base.css'
 | Действия | `FxButton`, `FxDropdown`, `FxMenuItem` |
 | Данные | `FxTable`, `FxPagination`, `FxDescriptions`, `FxTimeline`, `FxEmpty` |
 | Статусы | `FxBadge`, `FxAlert`, `FxStat`, `FxProgress`, `FxSteps`, `FxToast` |
-| Домен ЭТП | `FxMoney`, `FxCountdown`, `FxFilterBar`, `FxAvatar` |
+| Значения | `FxMoney`, `FxCountdown`, `FxAvatar`, `FxFilterBar` |
 | Прочее | `FxIcon`, `FxModal`, `FxTooltip` |
+
+Иконки задаются семантическим именем (`<FxIcon name="settings" />`). Своя
+иконка передаётся компонентом: `<FxIcon :component="MyIcon" />`.
 
 ## Форматтеры
 
 ```js
-import { formatMoney, formatInn, calcFee, plural } from 'foxy-ui-kit'
+import { formatMoney, formatBytes, formatDuration, pluralize } from 'foxy-ui-kit'
 
-formatMoney(4850000)          // «4 850 000 ₽»
-formatInn('7701234567')       // «7701 234 567»
-calcFee(4220000)              // { amount: 42200, capped: false, … } — 1% с полом и потолком
-plural(3, ['заявка', 'заявки', 'заявок'])
+formatMoney(4850000)                                 // «4 850 000 ₽»
+formatBytes(482301)                                  // «471,0 КБ»
+formatDuration(9930)                                 // «02:45:30»
+pluralize(3, ['файл', 'файла', 'файлов'])            // «3 файла»
 ```
 
-`calcFee` реализует тарифную модель площадки: 1% от цены победителя, пол
-1 000 ₽, потолок 300 000 ₽ за процедуру. Пол и потолок обязательны:
-без потолка комиссия с крупного лота становится неподъёмной, без пола не
-покрывает издержки процедуры.
-
-## Токены
-
-Все цвета и метрики — CSS-переменные с префиксом `--fx-`. Переопределяются в
-приложении после импорта:
-
-```css
-:root {
-  --fx-primary: #0f62fe;
-  --fx-radius: 10px;
-}
-```
+Также: `formatNumber`, `formatPercent`, `formatDate`, `formatDateTime`,
+`formatRelative`, `truncate`, `initials`, `plural`.
 
 ## Разработка
 
 ```bash
 yarn install
-yarn dev          # витрина всех компонентов на localhost:5173
+yarn dev          # витрина с конструктором темы на localhost:5173
 yarn build        # сборка библиотеки в dist/
 yarn build:demo   # сборка витрины для GitHub Pages
 ```

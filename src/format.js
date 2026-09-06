@@ -1,16 +1,21 @@
 /**
- * Форматтеры предметной области ЭТП.
+ * Форматтеры для интерфейса.
  *
- * Живут в ките, потому что суммы, ИНН, даты и сроки показываются на десятках
- * экранов и должны выглядеть одинаково в приложении, в письмах и в печатных
- * формах. Все функции чистые и не зависят от Vue.
+ * Небольшой набор общих утилит: числа, деньги, даты, размеры файлов,
+ * склонение. Живут в ките, потому что одни и те же значения показываются на
+ * десятках экранов и должны выглядеть одинаково. Все функции чистые и не
+ * зависят от Vue.
+ *
+ * Локаль по умолчанию — ru-RU; переопределяется параметром `locale`.
  */
 
-/** Денежная сумма в рублях: 1 234 567 ₽ */
-export function formatMoney(value, { fraction = false, currency = 'RUB', compact = false } = {}) {
+const DEFAULT_LOCALE = 'ru-RU'
+
+/** Денежная сумма: formatMoney(1234567) → «1 234 567 ₽» */
+export function formatMoney(value, { fraction = false, currency = 'RUB', compact = false, locale = DEFAULT_LOCALE } = {}) {
   const n = Number(value)
   if (!Number.isFinite(n)) return '—'
-  return new Intl.NumberFormat('ru-RU', {
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
     minimumFractionDigits: fraction ? 2 : 0,
@@ -20,78 +25,113 @@ export function formatMoney(value, { fraction = false, currency = 'RUB', compact
 }
 
 /** Число с разделителями разрядов. */
-export function formatNumber(value, digits = 0) {
+export function formatNumber(value, { digits = 0, compact = false, locale = DEFAULT_LOCALE } = {}) {
   const n = Number(value)
   if (!Number.isFinite(n)) return '—'
-  return new Intl.NumberFormat('ru-RU', {
+  return new Intl.NumberFormat(locale, {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+    notation: compact ? 'compact' : 'standard',
+  }).format(n)
+}
+
+/** Процент: formatPercent(0.125) → «12,5 %» */
+export function formatPercent(value, { digits = 1, locale = DEFAULT_LOCALE } = {}) {
+  const n = Number(value)
+  if (!Number.isFinite(n)) return '—'
+  return new Intl.NumberFormat(locale, {
+    style: 'percent',
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   }).format(n)
 }
 
-/** Дата: 05.09.2026 */
-export function formatDate(value) {
+/** Дата: «05.09.2026» */
+export function formatDate(value, { locale = DEFAULT_LOCALE, style = 'short' } = {}) {
   if (!value) return '—'
-  return new Intl.DateTimeFormat('ru-RU', { dateStyle: 'short' }).format(new Date(value))
+  return new Intl.DateTimeFormat(locale, { dateStyle: style }).format(new Date(value))
 }
 
-/** Дата и время: 05.09.2026, 14:30 */
-export function formatDateTime(value) {
+/** Дата и время: «05.09.2026, 14:30» */
+export function formatDateTime(value, { locale = DEFAULT_LOCALE } = {}) {
   if (!value) return '—'
-  return new Intl.DateTimeFormat('ru-RU', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(value))
+  return new Intl.DateTimeFormat(locale, { dateStyle: 'short', timeStyle: 'short' }).format(new Date(value))
 }
 
-/** Относительный срок: «через 3 дня», «2 часа назад». */
-export function formatRelative(value) {
+/** Относительное время: «через 3 дня», «2 часа назад». */
+export function formatRelative(value, { locale = DEFAULT_LOCALE } = {}) {
   if (!value) return '—'
   const diff = new Date(value).getTime() - Date.now()
-  const rtf = new Intl.RelativeTimeFormat('ru-RU', { numeric: 'auto' })
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
   const units = [
+    ['year', 31536000000],
+    ['month', 2592000000],
     ['day', 86400000],
     ['hour', 3600000],
     ['minute', 60000],
     ['second', 1000],
   ]
   for (const [unit, ms] of units) {
-    if (Math.abs(diff) >= ms || unit === 'second') {
-      return rtf.format(Math.round(diff / ms), unit)
-    }
+    if (Math.abs(diff) >= ms || unit === 'second') return rtf.format(Math.round(diff / ms), unit)
   }
   return ''
 }
 
-/**
- * Комиссия площадки: 1% от цены победителя с полом и потолком.
- *
- * Пол и потолок обязательны экономически: без потолка комиссия с крупного лота
- * становится неподъёмной, без пола — не покрывает издержки процедуры.
- */
-export function calcFee(price, { rate = 0.01, min = 1000, max = 300000 } = {}) {
-  const raw = Number(price) * rate
-  const amount = Math.min(max, Math.max(min, raw))
-  return {
-    rate,
-    raw,
-    amount,
-    capped: raw > max,
-    floored: raw < min,
+/** Длительность в секундах → «02:45:10» или «3 д 04:12:00». */
+export function formatDuration(totalSeconds) {
+  const s = Math.max(0, Math.floor(Number(totalSeconds) || 0))
+  const pad = (n) => String(n).padStart(2, '0')
+  const d = Math.floor(s / 86400)
+  const h = Math.floor((s % 86400) / 3600)
+  const m = Math.floor((s % 3600) / 60)
+  const sec = s % 60
+  return d > 0 ? `${d} д ${pad(h)}:${pad(m)}:${pad(sec)}` : `${pad(h)}:${pad(m)}:${pad(sec)}`
+}
+
+/** Размер файла: formatBytes(482301) → «471 КБ» */
+export function formatBytes(bytes, { units = ['Б', 'КБ', 'МБ', 'ГБ', 'ТБ'] } = {}) {
+  const b = Number(bytes)
+  if (!Number.isFinite(b) || b <= 0) return '—'
+  let n = b
+  let u = 0
+  while (n >= 1024 && u < units.length - 1) {
+    n /= 1024
+    u++
   }
+  return `${n.toFixed(u === 0 ? 0 : 1).replace('.', ',')} ${units[u]}`
 }
 
-/** Маска ИНН/ОГРН для читаемости: 7701 234 567 */
-export function formatInn(inn) {
-  const s = String(inn ?? '').replace(/\D/g, '')
-  if (s.length === 10) return `${s.slice(0, 4)} ${s.slice(4, 7)} ${s.slice(7)}`
-  if (s.length === 12) return `${s.slice(0, 4)} ${s.slice(4, 8)} ${s.slice(8)}`
-  return s || '—'
+/** Обрезка строки по длине с многоточием. */
+export function truncate(text, max = 80) {
+  const s = String(text ?? '')
+  return s.length > max ? `${s.slice(0, max - 1)}…` : s
 }
 
-/** Правильное окончание: 3 заявки, 5 заявок. */
+/** Инициалы из имени: «Иванов Иван» → «ИИ» */
+export function initials(name, count = 2) {
+  return String(name ?? '')
+    .replace(/["«»]/g, '')
+    .split(/[\s-]+/)
+    .filter(Boolean)
+    .slice(0, count)
+    .map((w) => w[0].toUpperCase())
+    .join('')
+}
+
+/**
+ * Склонение по числу: plural(3, ['файл', 'файла', 'файлов']) → «файла».
+ * Формы: [одна, две-четыре, много].
+ */
 export function plural(count, forms) {
-  const n = Math.abs(count) % 100
+  const n = Math.abs(Number(count)) % 100
   const n1 = n % 10
   if (n > 10 && n < 20) return forms[2]
   if (n1 > 1 && n1 < 5) return forms[1]
   if (n1 === 1) return forms[0]
   return forms[2]
+}
+
+/** Число вместе со склонённым словом: «3 файла». */
+export function pluralize(count, forms, { locale = DEFAULT_LOCALE } = {}) {
+  return `${formatNumber(count, { locale })} ${plural(count, forms)}`
 }

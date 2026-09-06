@@ -1,92 +1,120 @@
 <script setup>
 /**
- * Витрина foxy-ui-kit: все компоненты кита на одной странице с примерами из
- * предметной области ЭТП. Служит и документацией, и площадкой для визуальной
- * проверки при изменении токенов.
+ * Витрина foxy-ui-kit: все компоненты на одной странице плюс живой конструктор
+ * темы. Служит документацией и площадкой для визуальной проверки: меняя тему
+ * сверху, сразу видно, как кит выглядит в другом фирменном стиле.
  */
-import { computed, ref } from 'vue'
-import { iconNames, calcFee, formatMoney, useToast } from '../src/index.js'
+import { computed, ref, watch } from 'vue'
+import {
+  applyTheme, themes, themeToCss, iconNames,
+  densities, elevations, fontStacks, neutrals, radiusScales,
+  useToast, formatBytes,
+} from '../src/index.js'
 
 const toast = useToast()
 
-// --- демо-состояние ---
-const search = ref('')
-const inn = ref('7701234567')
-const okpd = ref('')
-const region = ref('')
-const law = ref('223')
+// --- конструктор темы ---
+const theme = ref({
+  preset: 'default',
+  neutral: '',
+  radius: 'default',
+  density: 'default',
+  elevation: 'default',
+  font: 'system',
+  accent: '',
+})
+
+const themeSpec = computed(() => {
+  const t = { ...theme.value }
+  if (!t.neutral) delete t.neutral
+  if (!t.accent) delete t.accent
+  return t
+})
+
+watch(themeSpec, (spec) => applyTheme(spec), { immediate: true, deep: true })
+
+const cssPreview = computed(() => themeToCss(themeSpec.value))
+
+function copyCss() {
+  navigator.clipboard?.writeText(cssPreview.value)
+  toast.success('CSS темы скопирован', 'Вставьте в глобальные стили проекта')
+}
+
+// --- демо-состояние компонентов ---
+const query = ref('')
+const email = ref('anna@example.com')
+const amount = ref('12 900')
+const city = ref('')
+const status = ref('active')
 const comment = ref('')
 const agree = ref(true)
 const notify = ref(true)
-const role = ref('supplier')
-const files = ref([{ name: 'Устав.pdf', size: 482301 }])
+const plan = ref('team')
+const files = ref([{ name: 'Отчёт за квартал.pdf', size: 482301 }])
 const tab = ref('all')
 const view = ref('table')
 const page = ref(1)
-const sortKey = ref('nmck')
+const sortKey = ref('amount')
 const sortDir = ref('desc')
 const modal = ref(false)
 const step = ref(1)
 
-const soon = new Date(Date.now() + 3 * 3600 * 1000 + 12 * 60 * 1000)
-const veryS = new Date(Date.now() + 47 * 1000)
+const deadline = new Date(Date.now() + 3 * 3600 * 1000 + 12 * 60 * 1000)
+const soon = new Date(Date.now() + 47 * 1000)
 
 const columns = [
-  { key: 'number', label: '№ извещения', width: '11rem', nowrap: true },
-  { key: 'name', label: 'Предмет закупки' },
-  { key: 'customer', label: 'Заказчик', width: '14rem' },
-  { key: 'nmck', label: 'НМЦК', width: '9rem', align: 'right', sortable: true },
-  { key: 'status', label: 'Статус', width: '10rem' },
-  { key: 'actions', label: '', width: '5rem', actions: true },
+  { key: 'id', label: 'ID', width: '6rem', nowrap: true },
+  { key: 'name', label: 'Название' },
+  { key: 'owner', label: 'Ответственный', width: '13rem' },
+  { key: 'amount', label: 'Сумма', width: '9rem', align: 'right', sortable: true },
+  { key: 'status', label: 'Статус', width: '9rem' },
+  { key: 'actions', label: '', width: '4rem', actions: true },
 ]
 
 const rows = [
-  { id: 1, number: '32413456789', name: 'Поставка серверного оборудования', customer: 'ПАО «Энергосети»', nmck: 4850000, status: 'Приём заявок', tone: 'primary' },
-  { id: 2, number: '32413456012', name: 'Услуги технической поддержки ИС', customer: 'АО «Ростелеком-Регион»', nmck: 1240000, status: 'Аукцион идёт', tone: 'warning' },
-  { id: 3, number: '32413455980', name: 'Ремонт кровли административного здания', customer: 'МУП «Городское хозяйство»', nmck: 780000, status: 'Подведение итогов', tone: 'info' },
-  { id: 4, number: '32413455871', name: 'Закупка канцелярских товаров', customer: 'ГБУ «Центр услуг»', nmck: 145000, status: 'Завершена', tone: 'neutral' },
+  { id: 'PR-1042', name: 'Обновление платёжного шлюза', owner: 'Анна Ковалёва', amount: 485000, status: 'В работе', tone: 'primary' },
+  { id: 'PR-1039', name: 'Миграция аналитики в ClickHouse', owner: 'Дмитрий Орлов', amount: 124000, status: 'На проверке', tone: 'warning' },
+  { id: 'PR-1035', name: 'Редизайн личного кабинета', owner: 'Мария Титова', amount: 78000, status: 'Готово', tone: 'success' },
+  { id: 'PR-1031', name: 'Аудит доступов', owner: 'Сергей Белов', amount: 14500, status: 'Отменено', tone: 'neutral' },
 ]
 
-const bids = [
-  { time: '14:32:07', title: 'Участник №3 — 4 220 000 ₽', text: 'Снижение 2,1% от текущей цены', tone: 'success', icon: 'down' },
-  { time: '14:29:41', title: 'Участник №1 — 4 310 000 ₽', text: 'Снижение 1,0%', tone: 'primary', icon: 'down' },
-  { time: '14:22:15', title: 'Участник №5 — 4 355 000 ₽', text: 'Первое предложение', tone: 'neutral', icon: 'auction' },
-  { time: '14:20:00', title: 'Аукцион начат', text: 'НМЦК 4 850 000 ₽, шаг 0,5–5%', tone: 'warning', icon: 'clock' },
+const events = [
+  { time: '14:32', title: 'Задача переведена в «Готово»', text: 'Мария Титова', tone: 'success', icon: 'check' },
+  { time: '14:29', title: 'Добавлен комментарий', text: '«Проверил на стенде, замечаний нет»', tone: 'primary', icon: 'message' },
+  { time: '13:48', title: 'Загружен файл', text: 'Отчёт за квартал.pdf', tone: 'neutral', icon: 'attach' },
+  { time: '11:05', title: 'Задача создана', text: 'Дмитрий Орлов', tone: 'warning', icon: 'add' },
 ]
-
-const fee = computed(() => calcFee(4220000))
-
-const activeFilters = computed(() => {
-  const out = []
-  if (law.value) out.push({ key: 'law', label: `Закон: ${law.value}-ФЗ` })
-  if (region.value) out.push({ key: 'region', label: `Регион: ${region.value}` })
-  if (okpd.value) out.push({ key: 'okpd', label: `ОКПД2: ${okpd.value}` })
-  return out
-})
 
 const nav = [
   { items: [
-    { label: 'Дашборд', to: '/', icon: 'dashboard' },
-    { label: 'Закупки', to: '/procurements', icon: 'procurement', badge: 12 },
-    { label: 'Торговый зал', to: '/auctions', icon: 'auction' },
+    { label: 'Обзор', to: '/', icon: 'dashboard' },
+    { label: 'Проекты', to: '/projects', icon: 'folder', badge: 12 },
+    { label: 'Задачи', to: '/tasks', icon: 'checklist' },
   ] },
-  { section: 'Организация', items: [
-    { label: 'Профиль', to: '/org', icon: 'customer' },
-    { label: 'Финансы', to: '/finance', icon: 'wallet' },
+  { section: 'Настройки', items: [
+    { label: 'Команда', to: '/team', icon: 'users' },
+    { label: 'Оплата', to: '/billing', icon: 'wallet' },
   ] },
 ]
 
+const activeFilters = computed(() => {
+  const out = []
+  if (status.value) out.push({ key: 'status', label: `Статус: ${status.value === 'active' ? 'активные' : 'архив'}` })
+  if (city.value) out.push({ key: 'city', label: `Город: ${city.value}` })
+  return out
+})
+
 function removeFilter(chip) {
-  if (chip.key === 'law') law.value = ''
-  if (chip.key === 'region') region.value = ''
-  if (chip.key === 'okpd') okpd.value = ''
+  if (chip.key === 'status') status.value = ''
+  if (chip.key === 'city') city.value = ''
 }
 
 function resetFilters() {
-  law.value = ''
-  region.value = ''
-  okpd.value = ''
+  status.value = ''
+  city.value = ''
 }
+
+const optionsOf = (obj) => Object.keys(obj).map((k) => ({ value: k, label: k }))
 </script>
 
 <template>
@@ -94,10 +122,10 @@ function resetFilters() {
     <header class="showcase__hero">
       <div class="showcase__hero-inner">
         <div class="showcase__brand">
-          <span class="showcase__logo"><FxIcon name="auction" :size="20" /></span>
+          <span class="showcase__logo"><FxIcon name="zap" :size="20" /></span>
           <div>
             <h1>foxy-ui-kit</h1>
-            <p>Светлый UI-kit на Vue 3 для электронных торговых площадок (223-ФЗ / 44-ФЗ)</p>
+            <p>Светлый UI-kit на Vue 3 со сменными темами оформления</p>
           </div>
         </div>
         <div class="showcase__hero-actions">
@@ -108,23 +136,60 @@ function resetFilters() {
     </header>
 
     <main class="showcase__body">
+      <!-- Конструктор темы -->
+      <section class="showcase__section">
+        <h2 class="showcase__title">Тема оформления</h2>
+        <FxCard
+          title="Конструктор"
+          subtitle="Один и тот же кит в разной стилистике — меняются только CSS-переменные"
+        >
+          <template #actions>
+            <FxButton variant="secondary" size="sm" icon="copy" @click="copyCss">Скопировать CSS</FxButton>
+          </template>
+
+          <div class="showcase__presets">
+            <button
+              v-for="t in themes"
+              :key="t.value"
+              class="showcase__preset"
+              :class="{ 'showcase__preset--active': theme.preset === t.value && !theme.accent }"
+              @click="theme.preset = t.value; theme.accent = ''"
+            >
+              <span class="showcase__preset-dot" :style="{ background: t.accent }" />
+              {{ t.label }}
+            </button>
+          </div>
+
+          <div class="showcase__theme-grid">
+            <FxSelect v-model="theme.neutral" label="Нейтрали" placeholder="из пресета" :options="optionsOf(neutrals)" />
+            <FxSelect v-model="theme.radius" label="Скругления" :options="optionsOf(radiusScales)" />
+            <FxSelect v-model="theme.density" label="Плотность" :options="optionsOf(densities)" />
+            <FxSelect v-model="theme.elevation" label="Тени" :options="optionsOf(elevations)" />
+            <FxSelect v-model="theme.font" label="Шрифт" :options="optionsOf(fontStacks)" />
+            <FxInput v-model="theme.accent" label="Свой акцент" placeholder="#7c3aed" hint="перекрывает пресет" />
+          </div>
+
+          <pre class="showcase__css">{{ cssPreview }}</pre>
+        </FxCard>
+      </section>
+
       <!-- Кнопки -->
       <section class="showcase__section">
         <h2 class="showcase__title">Кнопки</h2>
         <FxCard>
           <div class="showcase__row">
-            <FxButton variant="primary">Подать заявку</FxButton>
-            <FxButton variant="secondary">Сохранить черновик</FxButton>
-            <FxButton variant="ghost">Отмена</FxButton>
-            <FxButton variant="success" icon="check">Аккредитовать</FxButton>
-            <FxButton variant="danger" icon="reject">Отклонить</FxButton>
+            <FxButton variant="primary">Сохранить</FxButton>
+            <FxButton variant="secondary">Отмена</FxButton>
+            <FxButton variant="ghost">Пропустить</FxButton>
+            <FxButton variant="success" icon="check">Подтвердить</FxButton>
+            <FxButton variant="danger" icon="delete">Удалить</FxButton>
             <FxButton variant="link">Подробнее</FxButton>
           </div>
           <div class="showcase__row showcase__row--mt">
-            <FxButton variant="primary" size="lg" icon="certificate">Войти по сертификату</FxButton>
-            <FxButton variant="primary" icon="auction">В торговый зал</FxButton>
+            <FxButton variant="primary" size="lg" icon="add">Создать проект</FxButton>
+            <FxButton variant="primary" icon="send">Отправить</FxButton>
             <FxButton variant="secondary" size="sm" icon="download">Выгрузить</FxButton>
-            <FxButton variant="primary" loading>Подписание…</FxButton>
+            <FxButton variant="primary" loading>Сохранение…</FxButton>
             <FxButton variant="secondary" icon="more" />
             <FxButton variant="primary" disabled>Недоступно</FxButton>
           </div>
@@ -137,34 +202,35 @@ function resetFilters() {
         <div class="showcase__grid showcase__grid--2">
           <FxCard title="Основные контролы">
             <div class="showcase__stack">
-              <FxInput v-model="search" label="Поиск" placeholder="Название или № извещения" prefix-icon="search" />
-              <FxInput v-model="inn" label="ИНН организации" required hint="10 цифр для юрлица, 12 для ИП" suffix="ЕГРЮЛ" />
-              <FxInput model-value="9 900 000" label="Цена предложения" suffix="₽" error="Ниже минимально допустимой" />
+              <FxInput v-model="query" label="Поиск" placeholder="Название или ID" prefix-icon="search" />
+              <FxInput v-model="email" label="Электронная почта" type="email" required hint="Используется для уведомлений" />
+              <FxInput v-model="amount" label="Бюджет" suffix="₽" error="Превышает лимит тарифа" />
               <FxSelect
-                v-model="region"
-                label="Регион поставки"
-                placeholder="Любой регион"
-                :options="['Москва', 'Санкт-Петербург', 'Новосибирская обл.', 'Татарстан']"
+                v-model="city"
+                label="Город"
+                placeholder="Любой"
+                :options="['Москва', 'Санкт-Петербург', 'Новосибирск', 'Казань']"
               />
-              <FxTextarea v-model="comment" label="Комментарий к заявке" placeholder="Необязательно" :rows="3" />
+              <FxTextarea v-model="comment" label="Комментарий" placeholder="Необязательно" :rows="3" />
             </div>
           </FxCard>
           <FxCard title="Выбор и переключатели">
             <div class="showcase__stack">
               <FxRadioGroup
-                v-model="role"
-                label="Роль в закупках"
+                v-model="plan"
+                label="Тарифный план"
                 :options="[
-                  { value: 'supplier', label: 'Поставщик', hint: 'Участие в торгах, подача заявок' },
-                  { value: 'customer', label: 'Заказчик', hint: 'Публикация закупок по 223-ФЗ' },
+                  { value: 'solo', label: 'Личный', hint: 'один пользователь' },
+                  { value: 'team', label: 'Командный', hint: 'до 20 участников' },
+                  { value: 'org', label: 'Организация', hint: 'без ограничений' },
                 ]"
               />
-              <FxCheckbox v-model="agree" label="Согласен с регламентом площадки" hint="Комиссия 1% удерживается с победителя" />
-              <FxSwitch v-model="notify" label="Уведомления о новых закупках" hint="По моим ОКПД2, раз в сутки" />
+              <FxCheckbox v-model="agree" label="Принимаю условия использования" hint="Можно отозвать в настройках" />
+              <FxSwitch v-model="notify" label="Уведомления по почте" hint="Сводка раз в сутки" />
               <FxSegmented
                 v-model="view"
                 :options="[
-                  { value: 'table', icon: 'procurement', label: 'Таблица' },
+                  { value: 'table', icon: 'checklist', label: 'Таблица' },
                   { value: 'cards', icon: 'dashboard', label: 'Карточки' },
                 ]"
               />
@@ -174,80 +240,78 @@ function resetFilters() {
         </div>
       </section>
 
-      <!-- Статусы -->
+      <!-- Метрики и статусы -->
       <section class="showcase__section">
-        <h2 class="showcase__title">Статусы и метрики</h2>
+        <h2 class="showcase__title">Метрики и статусы</h2>
         <div class="showcase__grid showcase__grid--4">
-          <FxStat label="Оборот за месяц" value="284,6 млн ₽" icon="finance" tone="primary" :trend="12.4" hint="к августу" />
-          <FxStat label="Комиссия площадки" value="2,41 млн ₽" icon="percent" tone="success" :trend="8.1" hint="1% с победителей" />
-          <FxStat label="Активных торгов" value="37" icon="auction" tone="warning" hint="из них 4 сейчас" />
-          <FxStat label="На модерации" value="9" icon="shield" tone="danger" :trend="-25" invert hint="заявок на аккредитацию" />
+          <FxStat label="Выручка за месяц" value="284,6 млн ₽" icon="finance" tone="primary" :trend="12.4" hint="к августу" />
+          <FxStat label="Активных пользователей" value="8 412" icon="users" tone="success" :trend="8.1" hint="за 30 дней" />
+          <FxStat label="Открытых задач" value="37" icon="checklist" tone="warning" hint="из них 4 просрочены" />
+          <FxStat label="Время отклика" value="184 мс" icon="activity" tone="danger" :trend="-25" invert hint="p95" />
         </div>
         <FxCard class="showcase__mt">
           <div class="showcase__row">
-            <FxBadge tone="primary" dot>Приём заявок</FxBadge>
-            <FxBadge tone="warning" dot>Аукцион идёт</FxBadge>
-            <FxBadge tone="info">Подведение итогов</FxBadge>
-            <FxBadge tone="success" icon="check-badge">Аккредитован</FxBadge>
-            <FxBadge tone="danger" icon="reject">В РНП</FxBadge>
+            <FxBadge tone="primary" dot>В работе</FxBadge>
+            <FxBadge tone="warning" dot>На проверке</FxBadge>
+            <FxBadge tone="info">Запланировано</FxBadge>
+            <FxBadge tone="success" icon="check-badge">Готово</FxBadge>
+            <FxBadge tone="danger" icon="reject">Отклонено</FxBadge>
             <FxBadge tone="neutral">Черновик</FxBadge>
-            <FxBadge tone="success" size="sm">Комиссия удержана</FxBadge>
+            <FxBadge tone="success" size="sm">Оплачено</FxBadge>
           </div>
           <div class="showcase__row showcase__row--mt">
             <FxMoney :value="4850000" size="lg" />
-            <FxMoney :value="4220000" tone="success" />
+            <FxMoney :value="128400" tone="success" />
             <FxMoney :value="42200" :fraction="true" tone="muted" />
             <FxMoney :value="284600000" compact />
-            <FxCountdown :to="soon" size="lg" />
-            <FxCountdown :to="veryS" />
+            <FxCountdown :to="deadline" size="lg" />
+            <FxCountdown :to="soon" />
           </div>
           <div class="showcase__stack showcase__row--mt">
             <FxProgress label="Заполненность профиля" :value="72" show-value />
-            <FxProgress label="Проверка документов" :value="100" tone="success" show-value />
-            <FxProgress label="До окончания приёма заявок" :value="18" tone="warning" show-value />
+            <FxProgress label="Синхронизация данных" :value="100" tone="success" show-value />
+            <FxProgress label="Использовано места" :value="18" tone="warning" show-value />
           </div>
         </FxCard>
       </section>
 
-      <!-- Плашки -->
+      <!-- Оповещения -->
       <section class="showcase__section">
         <h2 class="showcase__title">Оповещения</h2>
         <div class="showcase__stack">
-          <FxAlert tone="info" title="Требуется квалифицированная подпись">
-            Просматривать закупки можно после любого входа, подписывать заявки — только с УКЭП.
+          <FxAlert tone="info" title="Двухфакторная аутентификация">
+            Включите второй фактор, чтобы защитить аккаунт от входа по украденному паролю.
           </FxAlert>
-          <FxAlert tone="success" title="Организация аккредитована">
-            ООО «Ромашка», ИНН 7701234567. Данные подтянуты из ЕГРЮЛ, в РНП не значится.
+          <FxAlert tone="success" title="Изменения сохранены">
+            Новые настройки применятся ко всем участникам команды в течение минуты.
           </FxAlert>
-          <FxAlert tone="warning" title="Срок подачи заявок истекает через 3 часа" />
-          <FxAlert tone="danger" title="Сертификат отозван" closable>
-            Проверка OCSP вернула статус revoked. Войдите с действующим сертификатом.
+          <FxAlert tone="warning" title="Тариф истекает через 3 дня" />
+          <FxAlert tone="danger" title="Не удалось подключиться к хранилищу" closable>
+            Проверьте параметры доступа и повторите попытку.
           </FxAlert>
         </div>
       </section>
 
-      <!-- Фильтры и таблица -->
+      <!-- Поиск, фильтры и таблица -->
       <section class="showcase__section">
         <h2 class="showcase__title">Поиск, фильтры и таблица</h2>
         <FxFilterBar :active="activeFilters" @remove="removeFilter" @reset="resetFilters">
           <template #search>
-            <FxInput v-model="search" placeholder="Поиск по предмету закупки, ИНН или № извещения" prefix-icon="search" />
+            <FxInput v-model="query" placeholder="Поиск по названию, ID или ответственному" prefix-icon="search" />
           </template>
           <FxSelect
-            v-model="law"
-            label="Закон"
+            v-model="status"
+            label="Статус"
             placeholder="Все"
             :options="[
-              { value: '44', label: '44-ФЗ' },
-              { value: '223', label: '223-ФЗ' },
-              { value: 'comm', label: 'Коммерческая' },
+              { value: 'active', label: 'Активные' },
+              { value: 'archived', label: 'Архив' },
             ]"
           />
-          <FxSelect v-model="region" label="Регион" placeholder="Все" :options="['Москва', 'Санкт-Петербург', 'Татарстан']" />
-          <FxInput v-model="okpd" label="ОКПД2" placeholder="26.20.13" />
+          <FxSelect v-model="city" label="Город" placeholder="Все" :options="['Москва', 'Санкт-Петербург', 'Казань']" />
           <template #actions>
             <FxButton variant="secondary" icon="sliders">Ещё фильтры</FxButton>
-            <FxButton variant="primary" icon="bell">Подписаться</FxButton>
+            <FxButton variant="primary" icon="add">Создать</FxButton>
           </template>
         </FxFilterBar>
 
@@ -256,9 +320,9 @@ function resetFilters() {
             <FxTabs
               v-model="tab"
               :items="[
-                { value: 'all', label: 'Все закупки', count: 128 },
-                { value: 'my', label: 'Мои заявки', count: 6 },
-                { value: 'won', label: 'Победы', count: 2 },
+                { value: 'all', label: 'Все', count: 128 },
+                { value: 'mine', label: 'Мои', count: 6 },
+                { value: 'done', label: 'Завершённые', count: 42 },
                 { value: 'draft', label: 'Черновики', count: 1 },
               ]"
               variant="pill"
@@ -274,38 +338,37 @@ function resetFilters() {
             :total="128"
             clickable
           >
-            <template #cell-name="{ row }">
-              <span class="showcase__cell-name">{{ row.name }}</span>
+            <template #cell-name="{ row }"><span class="showcase__cell-name">{{ row.name }}</span></template>
+            <template #cell-owner="{ row }">
+              <span class="showcase__owner"><FxAvatar :name="row.owner" size="sm" />{{ row.owner }}</span>
             </template>
-            <template #cell-nmck="{ row }"><FxMoney :value="row.nmck" /></template>
-            <template #cell-status="{ row }">
-              <FxBadge :tone="row.tone" dot>{{ row.status }}</FxBadge>
-            </template>
+            <template #cell-amount="{ row }"><FxMoney :value="row.amount" /></template>
+            <template #cell-status="{ row }"><FxBadge :tone="row.tone" dot>{{ row.status }}</FxBadge></template>
             <template #cell-actions>
               <FxDropdown>
                 <template #trigger><FxButton variant="ghost" size="sm" icon="more" /></template>
-                <FxMenuItem icon="eye">Открыть карточку</FxMenuItem>
-                <FxMenuItem icon="star">В избранное</FxMenuItem>
-                <FxMenuItem icon="download">Скачать документацию</FxMenuItem>
-                <FxMenuItem icon="reject" danger>Скрыть из ленты</FxMenuItem>
+                <FxMenuItem icon="eye">Открыть</FxMenuItem>
+                <FxMenuItem icon="edit">Редактировать</FxMenuItem>
+                <FxMenuItem icon="copy">Дублировать</FxMenuItem>
+                <FxMenuItem icon="delete" danger>Удалить</FxMenuItem>
               </FxDropdown>
             </template>
           </FxTable>
         </FxCard>
       </section>
 
-      <!-- Мастер, хронология, описания -->
+      <!-- Процессы -->
       <section class="showcase__section">
         <h2 class="showcase__title">Процессы</h2>
         <div class="showcase__grid showcase__grid--2">
-          <FxCard title="Мастер публикации закупки">
+          <FxCard title="Мастер настройки">
             <FxSteps
               :items="[
-                { label: 'Сведения', hint: 'закон и способ' },
-                { label: 'Лоты', hint: 'ОКПД2, НМЦК' },
-                { label: 'Требования' },
-                { label: 'Документация' },
-                { label: 'Подпись' },
+                { label: 'Аккаунт', hint: 'почта и пароль' },
+                { label: 'Организация', hint: 'название, домен' },
+                { label: 'Команда' },
+                { label: 'Интеграции' },
+                { label: 'Готово' },
               ]"
               :current="step"
               clickable
@@ -317,69 +380,64 @@ function resetFilters() {
             </div>
           </FxCard>
 
-          <FxCard title="Лента торгов" subtitle="Лот №1 — серверное оборудование">
-            <template #actions><FxCountdown :to="veryS" /></template>
-            <FxTimeline :items="bids" />
+          <FxCard title="История изменений" subtitle="Задача PR-1042">
+            <template #actions><FxCountdown :to="soon" /></template>
+            <FxTimeline :items="events" />
           </FxCard>
 
-          <FxCard title="Карточка организации">
-            <template #actions><FxBadge tone="success" icon="check-badge">Аккредитован</FxBadge></template>
+          <FxCard title="Карточка сущности">
+            <template #actions><FxBadge tone="success" icon="check-badge">Активна</FxBadge></template>
             <FxDescriptions
               :items="[
-                { key: 'name', label: 'Наименование', value: 'ООО «Ромашка»', wide: true },
-                { key: 'inn', label: 'ИНН / КПП', value: '7701234567 / 770101001' },
-                { key: 'ogrn', label: 'ОГРН', value: '1157746123456' },
-                { key: 'head', label: 'Руководитель', value: 'Иванов И. И.' },
-                { key: 'msp', label: 'Реестр МСП', value: 'Малое предприятие' },
-                { key: 'addr', label: 'Адрес', value: 'г. Москва, ул. Тверская, д. 1', wide: true },
+                { key: 'name', label: 'Название', value: 'Обновление платёжного шлюза', wide: true },
+                { key: 'id', label: 'Идентификатор', value: 'PR-1042' },
+                { key: 'owner', label: 'Ответственный', value: 'Анна Ковалёва' },
+                { key: 'created', label: 'Создано', value: '12.08.2026' },
+                { key: 'size', label: 'Вложения', value: formatBytes(482301) },
+                { key: 'desc', label: 'Описание', value: 'Перевод оплаты на новый провайдер, миграция токенов.', wide: true },
               ]"
             />
           </FxCard>
 
-          <FxCard title="Расчёт комиссии площадки">
-            <FxDescriptions
-              :columns="1"
-              :items="[
-                { key: 'base', label: 'Цена победителя (с НДС)', value: formatMoney(4220000) },
-                { key: 'rate', label: 'Тариф', value: '1%' },
-                { key: 'raw', label: 'Расчётная комиссия', value: formatMoney(fee.raw, { fraction: true }) },
-                { key: 'amount', label: 'К удержанию', value: formatMoney(fee.amount, { fraction: true }) },
-              ]"
-            />
-            <FxAlert tone="info" class="showcase__mt">
-              Пол 1 000 ₽, потолок 300 000 ₽ за процедуру. Списывается с лицевого счёта при подписании договора.
-            </FxAlert>
+          <FxCard title="Пустое состояние" padding="none">
+            <FxEmpty
+              icon="search"
+              title="Ничего не найдено"
+              description="Попробуйте изменить запрос или убрать часть фильтров."
+            >
+              <FxButton variant="secondary" icon="refresh" @click="resetFilters">Сбросить фильтры</FxButton>
+            </FxEmpty>
           </FxCard>
         </div>
       </section>
 
-      <!-- Оболочка -->
+      <!-- Каркас -->
       <section class="showcase__section">
         <h2 class="showcase__title">Каркас приложения</h2>
         <div class="showcase__shell-frame">
           <FxShell :nav="nav">
             <template #logo>
-              <span class="showcase__logo showcase__logo--sm"><FxIcon name="auction" :size="15" /></span>
-              Торги
+              <span class="showcase__logo showcase__logo--sm"><FxIcon name="zap" :size="15" /></span>
+              Продукт
             </template>
             <template #header-left>
-              <FxBadge tone="primary" icon="supplier">Поставщик · ООО «Ромашка»</FxBadge>
+              <FxBadge tone="primary" icon="organization">ООО «Пример»</FxBadge>
             </template>
             <template #header-actions>
               <FxButton variant="ghost" icon="bell" />
               <FxDropdown>
-                <template #trigger><FxAvatar name="Иванов Иван" size="sm" /></template>
-                <FxMenuItem icon="user">Личный кабинет</FxMenuItem>
-                <FxMenuItem icon="customer">Сменить организацию</FxMenuItem>
+                <template #trigger><FxAvatar name="Анна Ковалёва" size="sm" /></template>
+                <FxMenuItem icon="user">Профиль</FxMenuItem>
+                <FxMenuItem icon="settings">Настройки</FxMenuItem>
                 <FxMenuItem icon="logout" danger>Выйти</FxMenuItem>
               </FxDropdown>
             </template>
-            <FxPage title="Дашборд поставщика" subtitle="Сводка по вашим заявкам и торгам">
-              <template #actions><FxButton variant="primary" icon="search">Найти закупки</FxButton></template>
+            <FxPage title="Обзор" subtitle="Сводка по вашим проектам">
+              <template #actions><FxButton variant="primary" icon="add">Создать</FxButton></template>
               <div class="showcase__grid showcase__grid--3">
-                <FxStat label="Заявок подано" value="6" icon="document" tone="primary" />
-                <FxStat label="Побед" value="2" icon="check-badge" tone="success" />
-                <FxStat label="Баланс счёта" value="128 400 ₽" icon="wallet" />
+                <FxStat label="Проектов" value="12" icon="folder" tone="primary" />
+                <FxStat label="Завершено" value="42" icon="check-badge" tone="success" />
+                <FxStat label="Баланс" value="128 400 ₽" icon="wallet" />
               </div>
             </FxPage>
           </FxShell>
@@ -389,34 +447,22 @@ function resetFilters() {
       <!-- Прочее -->
       <section class="showcase__section">
         <h2 class="showcase__title">Вспомогательное</h2>
-        <div class="showcase__grid showcase__grid--2">
-          <FxCard title="Модальное окно и уведомления">
-            <div class="showcase__row">
-              <FxButton variant="primary" @click="modal = true">Открыть модалку</FxButton>
-              <FxButton variant="secondary" @click="toast.success('Заявка подписана', 'УКЭП: Иванов И. И.')">Успех</FxButton>
-              <FxButton variant="secondary" @click="toast.warning('Срок истекает', 'Осталось 3 часа')">Внимание</FxButton>
-              <FxButton variant="secondary" @click="toast.error('Ошибка подписи', 'Плагин КриптоПро не найден')">Ошибка</FxButton>
-            </div>
-            <div class="showcase__row showcase__row--mt">
-              <FxTooltip text="1% от цены победителя, но не более 300 000 ₽ за процедуру">
-                <FxBadge tone="info" icon="info">Как считается комиссия</FxBadge>
-              </FxTooltip>
-              <FxAvatar name="Иванов Иван" />
-              <FxAvatar name="ООО Ромашка" square />
-              <FxAvatar icon="customer" size="lg" name="Энергосети" />
-            </div>
-          </FxCard>
-
-          <FxCard title="Пустое состояние" padding="none">
-            <FxEmpty
-              icon="search"
-              title="Закупки не найдены"
-              description="Попробуйте убрать часть фильтров или расширить диапазон НМЦК."
-            >
-              <FxButton variant="secondary" icon="refresh" @click="resetFilters">Сбросить фильтры</FxButton>
-            </FxEmpty>
-          </FxCard>
-        </div>
+        <FxCard title="Модальное окно, подсказки и уведомления">
+          <div class="showcase__row">
+            <FxButton variant="primary" @click="modal = true">Открыть модалку</FxButton>
+            <FxButton variant="secondary" @click="toast.success('Сохранено', 'Изменения применены')">Успех</FxButton>
+            <FxButton variant="secondary" @click="toast.warning('Требуется внимание', 'Тариф истекает через 3 дня')">Внимание</FxButton>
+            <FxButton variant="secondary" @click="toast.error('Ошибка', 'Не удалось связаться с сервером')">Ошибка</FxButton>
+          </div>
+          <div class="showcase__row showcase__row--mt">
+            <FxTooltip text="Подсказка появляется по наведению и по фокусу с клавиатуры">
+              <FxBadge tone="info" icon="info">Наведите на меня</FxBadge>
+            </FxTooltip>
+            <FxAvatar name="Анна Ковалёва" />
+            <FxAvatar name="ООО Пример" square />
+            <FxAvatar icon="organization" size="lg" name="Компания" />
+          </div>
+        </FxCard>
       </section>
 
       <!-- Иконки -->
@@ -433,23 +479,23 @@ function resetFilters() {
       </section>
     </main>
 
-    <FxModal v-model="modal" title="Подписание заявки" subtitle="Заявка на участие в закупке №32413456789" size="md">
+    <FxModal v-model="modal" title="Подтверждение действия" subtitle="Задача PR-1042" size="md">
       <div class="showcase__stack">
-        <FxAlert tone="info">Будет использован сертификат УКЭП, выданный УЦ ФНС.</FxAlert>
+        <FxAlert tone="info">Действие затронет всех участников проекта.</FxAlert>
         <FxDescriptions
           :columns="1"
           :items="[
-            { key: 'owner', label: 'Владелец сертификата', value: 'Иванов Иван Иванович' },
-            { key: 'org', label: 'Организация', value: 'ООО «Ромашка», ИНН 7701234567' },
-            { key: 'valid', label: 'Действителен до', value: '14.03.2027' },
+            { key: 'who', label: 'Инициатор', value: 'Анна Ковалёва' },
+            { key: 'what', label: 'Действие', value: 'Перевод в статус «Готово»' },
+            { key: 'when', label: 'Дата', value: '06.09.2026' },
           ]"
         />
-        <FxCheckbox :model-value="true" label="Подтверждаю достоверность сведений в заявке" />
+        <FxCheckbox :model-value="true" label="Уведомить участников по почте" />
       </div>
       <template #footer>
         <FxButton variant="ghost" @click="modal = false">Отмена</FxButton>
-        <FxButton variant="primary" icon="certificate" @click="modal = false; toast.success('Заявка подписана и отправлена')">
-          Подписать
+        <FxButton variant="primary" icon="check" @click="modal = false; toast.success('Действие выполнено')">
+          Подтвердить
         </FxButton>
       </template>
     </FxModal>
@@ -461,7 +507,7 @@ function resetFilters() {
 <style scoped>
 .showcase { min-height: 100vh; }
 .showcase__hero {
-  background: linear-gradient(180deg, #ffffff 0%, #f2f6fc 100%);
+  background: linear-gradient(180deg, var(--fx-surface) 0%, var(--fx-bg) 100%);
   border-bottom: 1px solid var(--fx-border);
 }
 .showcase__hero-inner {
@@ -493,7 +539,14 @@ function resetFilters() {
 
 .showcase__body { max-width: 1160px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
 .showcase__section + .showcase__section { margin-top: 2.5rem; }
-.showcase__title { font-size: 0.8125rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fx-text-faint); margin-bottom: 0.75rem; }
+.showcase__title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--fx-text-faint);
+  margin-bottom: 0.75rem;
+}
 .showcase__count { color: var(--fx-text-muted); }
 .showcase__row { display: flex; align-items: center; gap: 0.625rem; flex-wrap: wrap; }
 .showcase__row--mt, .showcase__mt { margin-top: 1rem; }
@@ -503,6 +556,39 @@ function resetFilters() {
 .showcase__grid--3 { grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); }
 .showcase__grid--4 { grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); }
 .showcase__cell-name { font-weight: 500; }
+.showcase__owner { display: inline-flex; align-items: center; gap: 0.45rem; }
+
+.showcase__presets { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
+.showcase__preset {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.7rem;
+  background: var(--fx-surface);
+  border: 1px solid var(--fx-border-strong);
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.8125rem;
+  color: var(--fx-text-muted);
+  cursor: pointer;
+}
+.showcase__preset:hover { color: var(--fx-text); }
+.showcase__preset--active { border-color: var(--fx-primary); color: var(--fx-primary); font-weight: 600; }
+.showcase__preset-dot { width: 0.7rem; height: 0.7rem; border-radius: 50%; }
+.showcase__theme-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 0.75rem; }
+.showcase__css {
+  margin: 1rem 0 0;
+  padding: 0.875rem;
+  background: var(--fx-surface-muted);
+  border: 1px solid var(--fx-border);
+  border-radius: var(--fx-radius-sm);
+  font-family: var(--fx-font-mono);
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: var(--fx-text-muted);
+  overflow-x: auto;
+}
+
 .showcase__shell-frame {
   border: 1px solid var(--fx-border);
   border-radius: var(--fx-radius);

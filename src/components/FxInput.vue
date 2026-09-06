@@ -6,7 +6,7 @@
  * выравнивается без правок в приложении. Нативные атрибуты (autocomplete,
  * inputmode, min, @blur, …) прокидываются на <input>.
  *
- *   <FxInput v-model="inn" label="ИНН" prefix-icon="search" :error="err" />
+ *   <FxInput v-model="query" label="Поиск" prefix-icon="search" :error="err" />
  */
 import FxIcon from './FxIcon.vue'
 

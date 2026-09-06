@@ -1,5 +1,5 @@
 /**
- * foxy-ui-kit — светлый UI-kit на Vue 3 для электронных торговых площадок.
+ * foxy-ui-kit — светлый UI-kit на Vue 3 со сменными темами оформления.
  *
  * Точка входа: именованные экспорты компонентов + плагин для глобальной
  * регистрации. Стили токенов подключаются автоматически; базовый reset
@@ -58,6 +58,10 @@ export {
 }
 
 export { iconNames, iconRegistry } from './components/icon-registry.js'
+export {
+  applyTheme, buildTheme, themeToCss, themes,
+  presets, neutrals, radiusScales, densities, elevations, fontStacks,
+} from './theme.js'
 export { useToast, pushToast, dismissToast, toasts } from './composables/useToast.js'
 export * from './format.js'
 

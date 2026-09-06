@@ -1,7 +1,7 @@
 {
   "name": "foxy-ui-kit",
   "version": "0.1.0",
-  "description": "Светлый UI-kit на Vue 3 для электронных торговых площадок (223-ФЗ / 44-ФЗ)",
+  "description": "Светлый UI-kit на Vue 3 со сменными темами оформления",
   "license": "MIT",
   "type": "module",
   "packageManager": "yarn@4.13.0",
@@ -43,11 +43,12 @@
   },
   "keywords": [
     "vue",
+    "vue3",
     "ui-kit",
     "design-system",
-    "223-fz",
-    "44-fz",
-    "etp",
-    "tender"
+    "components",
+    "theme",
+    "theming",
+    "light-theme"
   ]
 }
