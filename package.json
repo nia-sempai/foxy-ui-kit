@@ -24,7 +24,7 @@
     "build": "vite build",
     "build:demo": "vite build --config vite.demo.config.js",
     "preview": "vite preview",
-    "prepack": "vite build"
+    "prepack": "vite build >&2"
   },
   "peerDependencies": {
     "vue": "^3.4.0"
