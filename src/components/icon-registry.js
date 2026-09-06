@@ -1,0 +1,83 @@
+/**
+ * Реестр иконок кита: семантическое имя → компонент Lucide.
+ *
+ * Отдельный модуль, чтобы витрина и тесты могли перечислить имена, не
+ * инстанцируя компонент. Добавляя иконку, называйте её по смыслу в интерфейсе
+ * ("auction", "supplier"), а не по форме ("gavel", "truck") — тогда набор
+ * можно заменить целиком, не трогая вызовы.
+ */
+import {
+  Activity, AlertTriangle, ArrowLeft, ArrowRight, BadgeCheck, Banknote,
+  Bell, Building2, Calendar, Check, ChevronDown, ChevronLeft, ChevronRight,
+  ChevronUp, ClipboardList, Clock, Copy, CreditCard, Download, ExternalLink,
+  Eye, FileSignature, FileText, Filter, Gavel, Globe, Info, KeyRound,
+  LayoutDashboard, LifeBuoy, Loader2, LogOut, Mail, MapPin, Menu, MinusCircle,
+  MoreVertical, Paperclip, Pencil, Percent, Plus, RefreshCw, Scale, Search,
+  Settings, Shield, ShieldCheck, SlidersHorizontal, Star, Trash2, TrendingDown,
+  TrendingUp, Truck, Upload, User, Users, Wallet, X, XCircle,
+} from 'lucide-vue-next'
+
+export const iconRegistry = {
+  activity: Activity,
+  add: Plus,
+  alert: AlertTriangle,
+  attach: Paperclip,
+  auction: Gavel,
+  back: ArrowLeft,
+  bell: Bell,
+  calendar: Calendar,
+  card: CreditCard,
+  certificate: FileSignature,
+  check: Check,
+  'check-badge': BadgeCheck,
+  'chevron-down': ChevronDown,
+  'chevron-left': ChevronLeft,
+  'chevron-right': ChevronRight,
+  'chevron-up': ChevronUp,
+  clock: Clock,
+  close: X,
+  contract: FileSignature,
+  copy: Copy,
+  customer: Building2,
+  dashboard: LayoutDashboard,
+  delete: Trash2,
+  document: FileText,
+  down: TrendingDown,
+  download: Download,
+  edit: Pencil,
+  external: ExternalLink,
+  eye: Eye,
+  filter: Filter,
+  finance: Banknote,
+  forward: ArrowRight,
+  globe: Globe,
+  help: LifeBuoy,
+  info: Info,
+  key: KeyRound,
+  law: Scale,
+  location: MapPin,
+  logout: LogOut,
+  mail: Mail,
+  menu: Menu,
+  more: MoreVertical,
+  percent: Percent,
+  procurement: ClipboardList,
+  refresh: RefreshCw,
+  reject: XCircle,
+  search: Search,
+  settings: Settings,
+  shield: Shield,
+  'shield-check': ShieldCheck,
+  sliders: SlidersHorizontal,
+  spinner: Loader2,
+  star: Star,
+  supplier: Truck,
+  up: TrendingUp,
+  upload: Upload,
+  user: User,
+  users: Users,
+  wallet: Wallet,
+  withdraw: MinusCircle,
+}
+
+export const iconNames = Object.keys(iconRegistry)

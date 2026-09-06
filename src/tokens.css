@@ -1,0 +1,46 @@
+/*
+ * Дизайн-токены foxy-ui-kit.
+ *
+ * Светлая тема — единственная. Все примитивы берут размеры и цвета отсюда,
+ * поэтому строка «инпут + селект + кнопка» выравнивается без правок в верстке
+ * приложения. Переопределяются приложением через :root после импорта.
+ */
+:root {
+  /* Палитра: холодный нейтральный фон, синий акцент */
+  --fx-primary: #2563eb;
+  --fx-primary-hover: #1d4ed8;
+  --fx-primary-soft: #eff6ff;
+  --fx-success: #059669;
+  --fx-success-soft: #ecfdf5;
+  --fx-warning: #b45309;
+  --fx-warning-soft: #fffbeb;
+  --fx-danger: #dc2626;
+  --fx-danger-soft: #fef2f2;
+  --fx-info: #4f46e5;
+  --fx-info-soft: #eef2ff;
+
+  --fx-bg: #f6f8fb;
+  --fx-surface: #ffffff;
+  --fx-surface-muted: #f8fafc;
+  --fx-border: #e4e9f0;
+  --fx-border-strong: #cbd5e1;
+  --fx-text: #172033;
+  --fx-text-muted: #64748b;
+  --fx-text-faint: #94a3b8;
+
+  /* Метрики */
+  --fx-control-h: 2.5rem;
+  --fx-control-h-sm: 2rem;
+  --fx-radius: 8px;
+  --fx-radius-sm: 6px;
+  --fx-radius-lg: 14px;
+  --fx-gap: 0.5rem;
+
+  /* Тени — мягкие, «без излишеств» */
+  --fx-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --fx-shadow-md: 0 4px 16px rgba(15, 23, 42, 0.08);
+  --fx-shadow-lg: 0 18px 44px rgba(15, 23, 42, 0.14);
+
+  --fx-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --fx-font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+}

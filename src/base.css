@@ -1,0 +1,32 @@
+/*
+ * Базовые стили страницы. Импортируются отдельно от токенов, чтобы приложение
+ * могло взять только примитивы, не трогая глобальный reset.
+ */
+@import './tokens.css';
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--fx-font);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--fx-text);
+  background: var(--fx-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6, p, figure { margin: 0; }
+h1 { font-size: 1.5rem; font-weight: 650; letter-spacing: -0.01em; }
+h2 { font-size: 1.125rem; font-weight: 600; }
+h3 { font-size: 1rem; font-weight: 600; }
+
+a { color: var(--fx-primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+::selection { background: #dbeafe; }
+
+/* Единый вид фокуса для клавиатуры во всём ките */
+:focus-visible { outline: 2px solid var(--fx-primary); outline-offset: 2px; }

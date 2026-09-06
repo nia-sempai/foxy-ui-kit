@@ -1,0 +1,30 @@
+name: Publish package
+
+# Публикация по тегу v*. Пакет неймспейсный только в npm: GitHub Packages
+# принимает исключительно scoped-имена (@owner/name), а кит публикуется под
+# коротким `foxy-ui-kit`, поэтому туда не отправляем — из репозитория он и так
+# ставится как `yarn add foxy-ui-kit@github:nia-sempai/foxy-ui-kit`.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  npm:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - run: corepack enable
+      - run: yarn install --immutable
+      - run: yarn build
+      - name: Publish to npm
+        run: yarn npm publish --access public
+        env:
+          YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

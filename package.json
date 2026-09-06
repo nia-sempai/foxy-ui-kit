@@ -1,0 +1,53 @@
+{
+  "name": "foxy-ui-kit",
+  "version": "0.1.0",
+  "description": "Светлый UI-kit на Vue 3 для электронных торговых площадок (223-ФЗ / 44-ФЗ)",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "yarn@4.13.0",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "main": "./dist/foxy-ui-kit.umd.cjs",
+  "module": "./dist/foxy-ui-kit.js",
+  "exports": {
+    ".": {
+      "import": "./dist/foxy-ui-kit.js",
+      "require": "./dist/foxy-ui-kit.umd.cjs"
+    },
+    "./style.css": "./dist/foxy-ui-kit.css",
+    "./src/*": "./src/*"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:demo": "vite build --config vite.demo.config.js",
+    "preview": "vite preview",
+    "prepack": "vite build"
+  },
+  "peerDependencies": {
+    "vue": "^3.4.0"
+  },
+  "dependencies": {
+    "lucide-vue-next": "^1.0.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.5",
+    "vite": "^8.0.1",
+    "vue": "^3.5.30"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nia-sempai/foxy-ui-kit.git"
+  },
+  "keywords": [
+    "vue",
+    "ui-kit",
+    "design-system",
+    "223-fz",
+    "44-fz",
+    "etp",
+    "tender"
+  ]
+}
