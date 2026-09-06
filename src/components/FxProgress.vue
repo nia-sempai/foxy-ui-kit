@@ -37,7 +37,7 @@ const percent = computed(() => Math.min(100, Math.max(0, (props.value / props.ma
 .fx-progress__head { display: flex; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.3rem; font-size: 0.8125rem; }
 .fx-progress__label { color: var(--fx-text-muted); }
 .fx-progress__value { font-weight: 600; }
-.fx-progress__track { height: 0.5rem; background: #eef2f7; border-radius: 999px; overflow: hidden; }
+.fx-progress__track { height: 0.5rem; background: var(--fx-surface-muted); border-radius: 999px; overflow: hidden; }
 .fx-progress__bar { height: 100%; border-radius: 999px; transition: width 0.3s ease; }
 .fx-progress__bar--primary { background: var(--fx-primary); }
 .fx-progress__bar--success { background: var(--fx-success); }

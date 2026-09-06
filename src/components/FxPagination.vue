@@ -98,7 +98,7 @@ function go(p) {
 .fx-pagination__nav:hover:not(:disabled) { background: var(--fx-surface-muted); color: var(--fx-text); }
 .fx-pagination__page--active {
   background: var(--fx-primary-soft);
-  border-color: #bfdbfe;
+  border-color: currentColor;
   color: var(--fx-primary);
   font-weight: 600;
 }

@@ -65,10 +65,12 @@ defineEmits(['update:modelValue'])
 .fx-tabs__count {
   padding: 0.05rem 0.35rem;
   border-radius: 999px;
-  background: #f1f5f9;
+  background: var(--fx-surface-muted);
   font-size: 0.6875rem;
   font-weight: 600;
   color: var(--fx-text-muted);
 }
-.fx-tabs__tab--active .fx-tabs__count { background: #dbeafe; color: var(--fx-primary); }
+/* Счётчик активной вкладки красится акцентом темы: currentColor берёт цвет
+   родителя, поэтому отдельная переменная под фон не нужна. */
+.fx-tabs__tab--active .fx-tabs__count { background: var(--fx-primary-soft); color: var(--fx-primary); }
 </style>

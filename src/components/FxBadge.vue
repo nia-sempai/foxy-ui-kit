@@ -38,8 +38,8 @@ defineProps({
 }
 .fx-badge--sm { font-size: 0.6875rem; padding: 0.1rem 0.4rem; }
 .fx-badge__dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; }
-.fx-badge--neutral { background: #f1f5f9; color: #475569; }
-.fx-badge--primary { background: var(--fx-primary-soft); color: #1d4ed8; }
+.fx-badge--neutral { background: var(--fx-surface-muted); color: var(--fx-text-muted); }
+.fx-badge--primary { background: var(--fx-primary-soft); color: var(--fx-primary); }
 .fx-badge--success { background: var(--fx-success-soft); color: #047857; }
 .fx-badge--warning { background: var(--fx-warning-soft); color: #b45309; }
 .fx-badge--danger { background: var(--fx-danger-soft); color: #b91c1c; }

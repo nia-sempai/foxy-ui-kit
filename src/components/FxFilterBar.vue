@@ -63,7 +63,7 @@ defineEmits(['remove', 'reset'])
   gap: 0.3rem;
   padding: 0.15rem 0.3rem 0.15rem 0.55rem;
   background: var(--fx-primary-soft);
-  color: #1d4ed8;
+  color: var(--fx-primary);
   border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 500;

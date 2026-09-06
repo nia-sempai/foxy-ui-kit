@@ -87,7 +87,7 @@ defineEmits(['select'])
 .fx-steps__body { display: flex; flex-direction: column; }
 .fx-steps__label { font-size: 0.875rem; color: var(--fx-text-muted); }
 .fx-steps__hint { font-size: 0.6875rem; color: var(--fx-text-faint); }
-.fx-steps__item--done .fx-steps__marker { background: var(--fx-success-soft); border-color: #a7f3d0; color: var(--fx-success); }
+.fx-steps__item--done .fx-steps__marker { background: var(--fx-success-soft); border-color: currentColor; color: var(--fx-success); }
 .fx-steps__item--done .fx-steps__label { color: var(--fx-text); }
 .fx-steps__item--current .fx-steps__marker { background: var(--fx-primary); border-color: var(--fx-primary); color: #fff; }
 .fx-steps__item--current .fx-steps__label { color: var(--fx-text); font-weight: 600; }

@@ -58,7 +58,7 @@ const good = computed(() => (props.invert ? props.trend < 0 : props.trend > 0))
   width: 1.75rem;
   height: 1.75rem;
   border-radius: var(--fx-radius-sm);
-  background: #f1f5f9;
+  background: var(--fx-surface-muted);
   color: var(--fx-text-muted);
 }
 .fx-stat__icon--primary { background: var(--fx-primary-soft); color: var(--fx-primary); }
